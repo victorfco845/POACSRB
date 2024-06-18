@@ -1,0 +1,6 @@
+Para usar la Api Instalar las dependencias con estos comandos:
+
+composer require laravel/passport
+php artisan migrate
+php artisan passport:install
+php artisan passport:client --personal
