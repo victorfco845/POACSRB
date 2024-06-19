@@ -6,111 +6,74 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Models\Profile;
-use App\Models\Job;
-use App\Models\Asistent;
-use App\Models\Review;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(Request $request) {
-        $validatedData = $request->validate([
-            'name' => 'required|max:55',
-            'email' => 'required',
-            'password' => 'required'
-        ]);
-    
-        $validatedData['password'] = bcrypt($request->password);
-        
-        $user = User::create($validatedData);
-        
-        $accessToken = $user->createToken('authToken')->accessToken;
-        
-        $profile = Profile::create([
-            'name' => 'Nombre por defecto',
-            'exp_job' => 'Nombre por defecto',
-        ]);
-        
-        $job = Job::create([
-            'jobs' => 'Nombre por defecto',
-            'description' => 'Nombre por defecto',
+    /**
+     * Register a new user.
+     */
+    public function register(Request $request)
+    {
+        $request->validate([
+            'Nombre' => 'required|string|max:128',
+            'Apellidos' => 'required|string|max:128',
+            'Correo_Institucional' => 'required|string|email|max:128|unique:usuarios',
+            'Numero_de_Empleado' => 'required|integer|unique:usuarios',
+            'Puesto' => 'required|string|max:128',
+            'Nivel' => 'required|integer',
         ]);
 
-        $review = Review::create([
-            'review' => 'Revisión predeterminada',
-            'calification' => '5',
-        ]);
-        
-        $asistent = Asistent::create([
-            'asistent' => 'Default Asistent Name',
-            'companie_id' => $job->id,
-            'petition_id' => $job->id,
-            'job_id' => $job->id,
-            'review_id' => $job->id,
-            'search_id' => $job->id,
-            'profile_id' => $profile->id,
-            'user_id' => $user->id,
+        $usuario = new User([
+            'Nombre' => $request->Nombre,
+            'Apellidos' => $request->Apellidos,
+            'Correo_Institucional' => $request->Correo_Institucional,
+            'Numero_de_Empleado' => $request->Numero_de_Empleado,
+            'Puesto' => $request->Puesto,
+            'Nivel' => $request->Nivel,
         ]);
 
-        
-        
-        return response([
-            'profile' => $user,
-            'access_token' => $accessToken,
-            'asistent' => $asistent,
-        ]);
+        $usuario->save();
+
+        return response()->json(['message' => 'Usuario registrado con éxito'], 201);
     }
-    
-    public function login(Request $request) {
-        $loginData = $request->validate([
-            'email' => 'email|required',
-            'password' => 'required'
+
+    /**
+     * Login a user.
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'Correo_Institucional' => 'required|string|email|max:128',
+            'Numero_de_Empleado' => 'required|integer',
         ]);
     
-        if (!auth()->attempt($loginData)) {
-            return response([
-                'response' => 'Invalid Credentials',
-                'message' => 'error'
+        $usuario = User::where('Correo_Institucional', $request->Correo_Institucional)
+                       ->where('Numero_de_Empleado', $request->Numero_de_Empleado)
+                       ->first();
+    
+        if (!$usuario) {
+            throw ValidationException::withMessages([
+                'Correo_Institucional' => ['Las credenciales proporcionadas son incorrectas.'],
+                'Numero_de_Empleado' => ['Las credenciales proporcionadas son incorrectas.'],
             ]);
         }
     
-        $accessToken = auth()->user()->createToken('authToken')->accessToken;
+        // Authenticate the user based on your application's logic
+        Auth::login($usuario);
     
-        return response([
-            'profile' => auth()->user(),
-            'access_token' => $accessToken,
-            'message' => 'success',
-        ]);
+        return response()->json(['message' => 'Inicio de sesión exitoso'], 200);
     }
-    
-    public function authtoken(Request $request) {
-        $user = $request->user();
-        $accessToken = $user->createToken('authToken')->accessToken;
-    
-        return response()->json(['access_token' => $accessToken]);
-    }
-    
-    
 
-    public function logout(Request $request) {
-        $user = $request->user();
-        if ($user) {
-            $user->tokens()->delete();
-            return response()->json([
-                'message' => 'Successfully logged out'
-            ]);
-        } else {
-            return response()->json([
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-    }
-    
+    /**
+     * Logout a user.
+     */
+    public function logout(Request $request)
+    {
+        // Revoke the token
+        $request->user()->tokens()->delete();
 
-    public function user(Request $request) {
-        $user = $request->user();
-        $profile = Profile::where('user_id', '=', $user->id)->first();
-
-        return response()->json([$user, $profile]);
+        return response()->json(['message' => 'Cierre de sesión exitoso'], 200);
     }
 }
