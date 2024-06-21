@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User; // Asegúrate de importar el modelo User correctamente aquí
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -19,7 +19,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['message' => 'El Usuario no se encuentra'], 404);
+            return response()->json(['message' => 'The User was not found'], 404);
         }
         return response()->json($user);
     }
@@ -27,58 +27,66 @@ class UserController extends Controller
     public function create(Request $request)
     {
         $request->validate([
-            'Nombre' => 'required|string|max:128',
-            'Apellidos' => 'required|string|max:128',
-            'Correo_Institucional' => 'required|string|email|max:128|unique:usuarios',
-            'Numero_de_Empleado' => 'required|integer|unique:usuarios',
-            'Puesto' => 'required|string|max:128',
-            'Nivel' => 'required|integer',
+            'user' => 'required|string|max:128',
+            'email' => 'required|string|email|max:128|unique:users,email',
+            'password' => 'required|string|max:128',
+            'user_number' => 'required|integer|unique:users,user_number',
+            'job' => 'required|string|max:128',
+            'level' => 'required|integer',
+        ], [
+            'email.unique' => 'The email is already registered',
+            'user_number.unique' => 'The employee number is already registered',
+        ]);
+        //insertar datos
+        $user = new User([
+            'user' => $request->user,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'user_number' => $request->user_number,
+            'job' => $request->job,
+            'level' => $request->level,
         ]);
 
-        $usuario = new User([
-            'Nombre' => $request->Nombre,
-            'Apellidos' => $request->Apellidos,
-            'Correo_Institucional' => $request->Correo_Institucional,
-            'Numero_de_Empleado' => $request->Numero_de_Empleado,
-            'Puesto' => $request->Puesto,
-            'Nivel' => $request->Nivel,
-        ]);
+        $user->save();
 
-        $usuario->save();
-
-        return response()->json(['message' => 'Usuario creado con éxito'], 201);
+        return response()->json(['message' => 'User successfully created'], 201);
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'Nombre' => 'required|string|max:128',
-            'Apellidos' => 'required|string|max:128',
-            'Correo_Institucional' => 'required|string|email|max:128|unique:usuarios,Correo_Institucional,'.$id.',id_usuario',
-            'Numero_de_Empleado' => 'required|integer|unique:usuarios,Numero_de_Empleado,'.$id.',id_usuario',
-            'Puesto' => 'required|string|max:128',
-            'Nivel' => 'required|integer',
+            'user' => 'required|string|max:128',
+            'email' => 'required|string|email|max:128|unique:users,email,' . $id,
+            'password' => 'string|max:128|nullable',
+            'user_number' => 'required|integer|unique:users,user_number,' . $id,
+            'job' => 'required|string|max:128',
+            'level' => 'required|integer',
+        ], [
+            'email.unique' => 'The email is already registered',
+            'user_number.unique' => 'The employee number is already registered',
         ]);
 
-        $usuario = User::findOrFail($id);
+        $user = User::findOrFail($id);
 
-        $usuario->Nombre = $request->Nombre;
-        $usuario->Apellidos = $request->Apellidos;
-        $usuario->Correo_Institucional = $request->Correo_Institucional;
-        $usuario->Numero_de_Empleado = $request->Numero_de_Empleado;
-        $usuario->Puesto = $request->Puesto;
-        $usuario->Nivel = $request->Nivel;
+        $user->user = $request->user;
+        $user->email = $request->email;
+        if ($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+        $user->user_number = $request->user_number;
+        $user->job = $request->job;
+        $user->level = $request->level;
 
-        $usuario->save();
+        $user->save();
 
-        return response()->json(['message' => 'Usuario actualizado con éxito'], 200);
+        return response()->json(['message' => 'User successfully updated'], 200);
     }
 
     public function delete($id)
     {
-        $usuario = User::findOrFail($id);
-        $usuario->delete();
+        $user = User::findOrFail($id);
+        $user->delete();
 
-        return response()->json(['message' => 'Usuario eliminado con éxito'], 200);
+        return response()->json(['message' => 'User successfully deleted'], 200);
     }
 }

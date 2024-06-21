@@ -1,8 +1,6 @@
 <?php
-
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,19 +10,17 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
-    protected $table = 'usuarios';
-    protected $primaryKey = 'id_usuario';
-
     protected $fillable = [
-        'Nombre',
-        'Apellidos',
-        'Correo_Institucional',
-        'Numero_de_Empleado',
-        'Puesto',
-        'Nivel',
+        'user',
+        'email',
+        'password',
+        'user_number',
+        'job',
+        'level',
     ];
 
     protected $hidden = [
+        'password',
         'remember_token',
     ];
 }

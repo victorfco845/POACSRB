@@ -1,11 +1,9 @@
 <?php
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
-
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -18,10 +16,9 @@ use App\Http\Controllers\Api\AuthController;
 |
 */
 
-
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/users', [UserController::class, 'list']);
 Route::get('/users/{id}', [UserController::class, 'id']);
@@ -30,5 +27,8 @@ Route::post('/userupdate/{id}', [UserController::class, 'update']);
 Route::post('/userdelete/{id}', [UserController::class, 'delete']);
 
 Route::middleware('auth:api')->post('/authtoken', [AuthController::class, 'authtoken']);
+Route::post('/', function (Request $request) {
+    return response()->json(['message' => 'POST method for root route is not allowed'], 405);
+});
 
 ?>
