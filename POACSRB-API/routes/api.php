@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CityController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -30,5 +33,9 @@ Route::middleware('auth:api')->post('/authtoken', [AuthController::class, 'autht
 Route::post('/', function (Request $request) {
     return response()->json(['message' => 'POST method for root route is not allowed'], 405);
 });
+
+Route::get('/cities', [CityController::class, 'index']);
+Route::get('/cities/{id}', [CityController::class, 'show']);
+
 
 ?>

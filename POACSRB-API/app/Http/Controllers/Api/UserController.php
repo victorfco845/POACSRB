@@ -37,7 +37,6 @@ class UserController extends Controller
             'email.unique' => 'The email is already registered',
             'user_number.unique' => 'The employee number is already registered',
         ]);
-        //insertar datos
         $user = new User([
             'user' => $request->user,
             'email' => $request->email,
