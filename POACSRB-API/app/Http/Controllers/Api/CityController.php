@@ -10,13 +10,20 @@ class CityController extends Controller
 {
     public function index()
     {
-        $cities = City::with('region')->get();
-
+        $cities = City::with('region')->get()->map(function ($city) {
+            return [
+                'id' => $city->id,
+                'city' => $city->city,
+                'region' => $city->region->region,
+            ];
+        });
+    
         return response()->json([
             'success' => true,
             'data' => $cities,
         ]);
     }
+    
 
     public function show($id)
     {
@@ -32,10 +39,9 @@ class CityController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+                'id' => $city->id,
                 'city' => $city->city,
                 'region' => $city->region->region,
-                'created_at' => $city->created_at,
-                'updated_at' => $city->updated_at,
             ],
         ]);
     }

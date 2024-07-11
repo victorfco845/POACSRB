@@ -37,5 +37,3 @@ Route::post('/', function (Request $request) {
 Route::get('/cities', [CityController::class, 'index']);
 Route::get('/cities/{id}', [CityController::class, 'show']);
 
-
-?>

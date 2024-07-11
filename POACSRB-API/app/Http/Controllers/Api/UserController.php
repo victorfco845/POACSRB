@@ -37,18 +37,24 @@ class UserController extends Controller
             'email.unique' => 'The email is already registered',
             'user_number.unique' => 'The employee number is already registered',
         ]);
-        $user = new User([
-            'user' => $request->user,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'user_number' => $request->user_number,
-            'job' => $request->job,
-            'level' => $request->level,
-        ]);
+        try {
+            $user = new User([
+                'user' => $request->user,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'user_number' => $request->user_number,
+                'job' => $request->job,
+                'level' => $request->level,
+            ]);
+            $user->save();
+            return response()->json(['message' => 'User successfully created'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Ha ocurrido un error al crear el usuario. Por favor, inténtelo de nuevo más tarde.'], 500);
+        }
+       
 
-        $user->save();
 
-        return response()->json(['message' => 'User successfully created'], 201);
+
     }
 
     public function update(Request $request, $id)

@@ -4,3 +4,5 @@ composer require laravel/passport
 php artisan migrate
 php artisan passport:install
 php artisan passport:client --personal
+php artisan db:seed
+
