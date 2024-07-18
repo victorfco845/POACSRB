@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('title', 128);
-            $table->string('comission_number', 128)->unique();
+            $table->string('comission_number', 128);
             $table->string('date', 128);
             $table->integer('user_id');
             $table->integer('total_people');
@@ -22,11 +22,10 @@ return new class extends Migration
             $table->integer('total_men');
             $table->integer('total_ethnicity');
             $table->integer('total_deshabilities');
-            $table->integer('city_id');
-            $table->integer('region_id');
-            $table->integer('agreement_id');
+            $table->integer('city');
+            $table->integer('region');
             $table->text('inform', 2500);
-            $table->timestamps();
+            $table->text('comment', 400)->nullable();
         });
         
     }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CityController;
+use App\Http\Controllers\Api\ReportController;
 
 
 
@@ -37,3 +38,8 @@ Route::post('/', function (Request $request) {
 Route::get('/cities', [CityController::class, 'index']);
 Route::get('/cities/{id}', [CityController::class, 'show']);
 
+Route::get('/reports', [ReportController::class, 'index']);
+Route::get('/reports/{id}', [ReportController::class, 'show']);
+Route::post('/reports', [ReportController::class, 'create']); // POST para crear
+Route::post('/reports/{id}', [ReportController::class, 'update']); // Cambiado a POST para actualizar
+Route::delete('/reports/{id}', [ReportController::class, 'delete']); // DELETE para eliminar

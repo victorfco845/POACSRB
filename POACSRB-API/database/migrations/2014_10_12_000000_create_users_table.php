@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('user_number')->unique();
             $table->string('job', 128);
             $table->integer('level');
-            $table->timestamps();
         });
     }
 

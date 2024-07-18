@@ -23,21 +23,32 @@ class UserController extends Controller
         }
         return response()->json($user);
     }
-
     public function create(Request $request)
     {
+        // Validación de los campos enviados en la solicitud
         $request->validate([
             'user' => 'required|string|max:128',
-            'email' => 'required|string|email|max:128|unique:users,email',
+            'email' => 'required|string|email|max:128',
             'password' => 'required|string|max:128',
-            'user_number' => 'required|integer|unique:users,user_number',
+            'user_number' => 'required|integer',
             'job' => 'required|string|max:128',
             'level' => 'required|integer',
-        ], [
-            'email.unique' => 'The email is already registered',
-            'user_number.unique' => 'The employee number is already registered',
         ]);
+    
         try {
+            // Verificar si ya existe un usuario con el mismo correo electrónico
+            $existingEmail = User::where('email', $request->email)->first();
+            if ($existingEmail) {
+                return response()->json(['error' => 'The email is already registered'], 422);
+            }
+    
+            // Verificar si ya existe un usuario con el mismo número de empleado
+            $existingUserNumber = User::where('user_number', $request->user_number)->first();
+            if ($existingUserNumber) {
+                return response()->json(['error' => 'The employee number is already registered'], 422);
+            }
+    
+            // Si no hay conflictos, crear el nuevo usuario
             $user = new User([
                 'user' => $request->user,
                 'email' => $request->email,
@@ -47,15 +58,14 @@ class UserController extends Controller
                 'level' => $request->level,
             ]);
             $user->save();
+    
             return response()->json(['message' => 'User successfully created'], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Ha ocurrido un error al crear el usuario. Por favor, inténtelo de nuevo más tarde.'], 500);
+            return response()->json(['error' => 'An error occurred while creating the user. Please try again later.'], 500);
         }
-       
-
-
-
     }
+    
+
 
     public function update(Request $request, $id)
     {
