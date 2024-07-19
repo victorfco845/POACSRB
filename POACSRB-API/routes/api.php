@@ -43,3 +43,11 @@ Route::get('/reports/{id}', [ReportController::class, 'show']);
 Route::post('/reports', [ReportController::class, 'create']); // POST para crear
 Route::post('/reports/{id}', [ReportController::class, 'update']); // Cambiado a POST para actualizar
 Route::delete('/reports/{id}', [ReportController::class, 'delete']); // DELETE para eliminar
+
+Route::get('/total-personas-por-meta', [ReportController::class, 'getTotalPersonasPorMeta']);
+Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
+Route::get('/total-personas-por-region', [ReportController::class, 'getTotalPersonasPorRegion']);
+Route::get('/total-personas-por-mes', [ReportController::class, 'getTotalPersonasPorMes']);
+Route::get('/total-comisiones-por-meta', [ReportController::class, 'getTotalComisionesPorMeta']);
+Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
+Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);

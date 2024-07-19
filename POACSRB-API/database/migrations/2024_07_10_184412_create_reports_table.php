@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('title', 128);
+            $table->integer('goal_id');
             $table->string('comission_number', 128);
             $table->string('date', 128);
             $table->integer('user_id');

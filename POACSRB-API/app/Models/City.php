@@ -8,4 +8,9 @@ class City extends Model
 {
     protected $fillable = ['city', 'region'];
 
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'city_id');
+    }
+
 }
