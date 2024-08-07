@@ -51,3 +51,5 @@ Route::get('/total-personas-por-mes', [ReportController::class, 'getTotalPersona
 Route::get('/total-comisiones-por-meta', [ReportController::class, 'getTotalComisionesPorMeta']);
 Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
 Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
+
+Route::get('/report', [ReportController::class, 'search']);
