@@ -10,7 +10,7 @@ class Report extends Model
         'title', 'goal_id', 'comission_number', 'date', 'user_id',
         'total_people', 'total_women', 'total_men',
         'total_ethnicity', 'total_deshabilities',
-        'city', 'region', 'inform', 'comment'
+        'city', 'region', 'inform', 'evidence_id', 'comment'
     ];
 
     public $timestamps = false;
@@ -23,6 +23,7 @@ class Report extends Model
         'total_ethnicity' => 'integer',
         'total_deshabilities' => 'integer',
         'user_id' => 'integer',
+        'evidence_id' => 'integer'
     ];
 
     public function goal()

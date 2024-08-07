@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\EvidenceController;
+
 
 
 
@@ -40,9 +42,9 @@ Route::get('/cities/{id}', [CityController::class, 'show']);
 
 Route::get('/reports', [ReportController::class, 'index']);
 Route::get('/reports/{id}', [ReportController::class, 'show']);
-Route::post('/reports', [ReportController::class, 'create']); // POST para crear
-Route::post('/reports/{id}', [ReportController::class, 'update']); // Cambiado a POST para actualizar
-Route::delete('/reports/{id}', [ReportController::class, 'delete']); // DELETE para eliminar
+Route::post('/reports', [ReportController::class, 'create']);
+Route::post('/reports/{id}', [ReportController::class, 'update']);
+Route::delete('/reports/{id}', [ReportController::class, 'delete']);
 
 Route::get('/total-personas-por-meta', [ReportController::class, 'getTotalPersonasPorMeta']);
 Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
@@ -53,3 +55,4 @@ Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTota
 Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
 
 Route::get('/report', [ReportController::class, 'search']);
+Route::apiResource('/evidences', EvidenceController::class);

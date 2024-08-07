@@ -38,6 +38,7 @@ class ReportController extends Controller
                 'city' => $report->city,
                 'region' => $report->region,
                 'inform' => $report->inform,
+                'evidence_id' => $report->evidence_id,
                 'comment' => $report->comment,
             ];
         });
@@ -67,6 +68,7 @@ public function show($id)
             'total_ethnicity' => $report->total_ethnicity,
             'total_deshabilities' => $report->total_deshabilities,
             'inform' => $report->inform,
+            'evidence' => $report->evidence_id,
             'comment' => $report->comment,
         ]);
     } catch (\Exception $e) {
@@ -93,6 +95,7 @@ public function create(Request $request)
         'city' => 'required|integer',
         'region' => 'required|integer',
         'inform' => 'required|string|max:2500',
+        'evidence_id' => 'required|integer',
         'comment' => 'nullable|string|max:400',
     ]);
 
@@ -110,6 +113,7 @@ public function create(Request $request)
         'city' => $request->input('city'),
         'region' => $request->input('region'),
         'inform' => $request->input('inform'),
+        'evidence_id' => $request->input('evidence_id'),
         'comment' => $request->input('comment'),
     ]);
 
@@ -119,74 +123,38 @@ public function create(Request $request)
 }
     
     
-        public function update(Request $request, $id)
-        {
-            // Validación de datos recibidos
-            $request->validate([
-                'title' => 'required|string|max:128',
-                'goal_id' => 'required|string|max:128',
-                'comission_number' => 'required|string|max:128',
-                'date' => 'required|string|max:128',
-                'user_id' => 'required|integer',
-                'total_people' => 'required|integer',
-                'total_women' => 'required|integer',
-                'total_men' => 'required|integer',
-                'total_ethnicity' => 'required|integer',
-                'total_deshabilities' => 'required|integer',
-                'city' => 'required|integer',
-                'region' => 'required|integer',
-                'inform' => 'required|string|max:2500',
-                'comment' => 'nullable|string|max:400',
-            ]);// Validación de datos recibidos
-        $request->validate([
-            'title' => 'required|string|max:128',
-            'goal_id' => 'required|integer', // Asegúrate de que sea un ID entero
-            'comission_number' => 'required|string|max:128',
-            'date' => 'required|string|max:128',
-            'user_id' => 'required|integer',
-            'total_people' => 'required|integer',
-            'total_women' => 'required|integer',
-            'total_men' => 'required|integer',
-            'total_ethnicity' => 'required|integer',
-            'total_deshabilities' => 'required|integer',
-            'city' => 'required|integer',
-            'region' => 'required|integer',
-            'inform' => 'required|string|max:2500',
-            'comment' => 'nullable|string|max:400',
-        ]);
-    
-        // Crea el reporte
-        $report = new Report([
-            'title' => $request->input('title'),
-            'goal_id' => $request->input('goal_id'), // Usa goal_id directamente
-            'comission_number' => $request->input('comission_number'),
-            'date' => $request->input('date'),
-            'user_id' => $request->input('user_id'),
-            'total_people' => $request->input('total_people'),
-            'total_women' => $request->input('total_women'),
-            'total_men' => $request->input('total_men'),
-            'total_ethnicity' => $request->input('total_ethnicity'),
-            'total_deshabilities' => $request->input('total_deshabilities'),
-            'city' => $request->input('city'),
-            'region' => $request->input('region'),
-            'inform' => $request->input('inform'),
-            'comment' => $request->input('comment'),
-        ]);
-    
-        $report->save();
-    
-        return response()->json(['message' => 'Reporte creado exitosamente.'], 201);
-        
-            try {
-                // Actualizar el informe
-                $report = Report::findOrFail($id);
-                $report->update($request->all());
-        
-                return response()->json(['message' => 'Report updated successfully', 'report' => $report]);
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'An error occurred while updating the report. Please try again later.'], 500);
-            }
-        }
+public function update(Request $request, $id)
+{
+    // Validación de datos recibidos
+    $request->validate([
+        'title' => 'required|string|max:128',
+        'goal_id' => 'required|integer', // Asegúrate de que sea un ID entero
+        'comission_number' => 'required|string|max:128',
+        'date' => 'required|string|max:128',
+        'user_id' => 'required|integer',
+        'total_people' => 'required|integer',
+        'total_women' => 'required|integer',
+        'total_men' => 'required|integer',
+        'total_ethnicity' => 'required|integer',
+        'total_deshabilities' => 'required|integer',
+        'city' => 'required|integer',
+        'region' => 'required|integer',
+        'inform' => 'required|string|max:2500',
+        'evidence_id' => 'required|integer',
+        'comment' => 'nullable|string|max:400',
+    ]);
+
+    try {
+        // Actualizar el informe
+        $report = Report::findOrFail($id);
+        $report->update($request->all());
+
+        return response()->json(['message' => 'Report updated successfully', 'report' => $report]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'An error occurred while updating the report. Please try again later.'], 500);
+    }
+}
+
         
         public function delete($id)
         {
@@ -310,7 +278,7 @@ public function create(Request $request)
                     'total_discapacitados' => 0
                 ];
             }
-        
+
             // Rellenar los datos de la consulta en el array de datos
             foreach ($results as $result) {
                 $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);

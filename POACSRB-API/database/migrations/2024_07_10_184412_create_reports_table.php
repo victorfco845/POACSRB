@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer('city');
             $table->integer('region');
             $table->text('inform', 2500);
+            $table->integer('evidence_id');
             $table->text('comment', 400)->nullable();
         });
         
