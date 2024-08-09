@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('evidences', function (Blueprint $table) {
             $table->id();
-            $table->binary('evidence');
-            $table->integer('report_id');
+            $table->string('evidence');
+            $table->unsignedBigInteger('report_id');
+            $table->foreign('report_id')->references('id')->on('reports')->onDelete('cascade');
         });
     }
 

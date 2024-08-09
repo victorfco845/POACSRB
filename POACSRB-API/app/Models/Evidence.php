@@ -15,8 +15,12 @@ class Evidence extends Model
         'evidence',
         'report_id',
     ];
+
     public function report()
     {
         return $this->belongsTo(Report::class);
     }
+
+    public $timestamps = false; // Desactivar timestamps
+
 }

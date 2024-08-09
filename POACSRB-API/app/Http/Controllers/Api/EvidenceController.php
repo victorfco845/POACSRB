@@ -17,55 +17,16 @@ class EvidenceController extends Controller
         return response()->json($evidences);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'evidence' => 'required|image',
-            'report_id' => 'required|exists:reports,id',
-        ]);
-
-        $evidenceData = file_get_contents($request->file('evidence')->getRealPath()); // Obtener el contenido de la imagen como bytes
-
-        Evidence::create([
-            'evidence' => $evidenceData,
-            'report_id' => $request->input('report_id'),
-        ]);
-
-        return response()->json(['message' => 'Evidence stored successfully']);
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $evidence = Evidence::findOrFail($id);
-
-        return response($evidence->evidence)->header('Content-Type', 'image/jpeg'); // Cambia 'image/jpeg' según el tipo de imagen almacenada
+    
+        // Generar la URL completa para la imagen almacenada
+        $fileUrl = asset('storage/' . $evidence->evidence);
+    
+        return response()->json(['url' => $fileUrl]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -86,14 +47,38 @@ class EvidenceController extends Controller
         return response()->json(['message' => 'Evidence updated successfully']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $evidence = Evidence::findOrFail($id);
-        $evidence->delete();
 
-        return response()->json(['message' => 'Evidence deleted successfully']);
-    }
+
+
+    public function testUpload(Request $request)
+{
+    $file = $request->file('evidence');
+    $path = $file->store('evidence', 'public');
+    return response()->json(['path' => $path]);
+}
+
+public function store(Request $request)
+{
+    // Validar la solicitud
+    $request->validate([
+        'evidence' => 'required|image', // Validar que sea una imagen
+        'report_id' => 'required|exists:reports,id', // Validar que el report_id exista en la tabla reports
+    ]);
+
+    // Obtener el archivo de la solicitud
+    $file = $request->file('evidence');
+    
+    // Almacenar el archivo y obtener la ruta
+    $path = $file->store('evidence', 'public'); // Guardar en storage/app/public/evidence
+
+    // Crear un nuevo registro en la base de datos
+    Evidence::create([
+        'evidence' => $path, // Guardar la ruta del archivo
+        'report_id' => $request->input('report_id'), // Asociar con el ID del reporte
+    ]);
+
+    // Devolver una respuesta de éxito en la base de datos
+    return response()->json(['path' => $path]);
+}
+
 }

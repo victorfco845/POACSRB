@@ -30,7 +30,6 @@ Route::get('/users', [UserController::class, 'list']);
 Route::get('/users/{id}', [UserController::class, 'id']);
 Route::post('/usercreate', [UserController::class, 'create']);
 Route::post('/userupdate/{id}', [UserController::class, 'update']);
-Route::post('/userdelete/{id}', [UserController::class, 'delete']);
 
 Route::middleware('auth:api')->post('/authtoken', [AuthController::class, 'authtoken']);
 Route::post('/', function (Request $request) {
@@ -55,4 +54,7 @@ Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTota
 Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
 
 Route::get('/report', [ReportController::class, 'search']);
-Route::apiResource('/evidences', EvidenceController::class);
+Route::post('/test-upload', [EvidenceController::class, 'testUpload']);
+Route::post('evidences', [EvidenceController::class, 'store']);
+Route::get('/evidences', [EvidenceController::class, 'index']);
+
