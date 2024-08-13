@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'ef77a8bf9dd5cc91b83151602d43d4922c930a0b',
+        'reference' => 'f553e3c57a0a9b61189e19e988b0a312fb6fa918',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -400,16 +400,16 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'ef77a8bf9dd5cc91b83151602d43d4922c930a0b',
+            'reference' => 'f553e3c57a0a9b61189e19e988b0a312fb6fa918',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'laravel/passport' => array(
-            'pretty_version' => 'v12.2.0',
-            'version' => '12.2.0.0',
-            'reference' => 'b24c6462835a16163141fbe588533d16603212b7',
+            'pretty_version' => 'v12.3.0',
+            'version' => '12.3.0.0',
+            'reference' => 'ca63a86697a4fa091c7dcabe88ebba91d97c785d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../laravel/passport',
             'aliases' => array(),
@@ -892,8 +892,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0|2.0|3.0',
-                1 => '3.0.0',
+                0 => '3.0.0',
+                1 => '1.0|2.0|3.0',
             ),
         ),
         'psr/simple-cache' => array(

@@ -10,20 +10,18 @@ class Report extends Model
         'title', 'goal_id', 'comission_number', 'date', 'user_id',
         'total_people', 'total_women', 'total_men',
         'total_ethnicity', 'total_deshabilities',
-        'city', 'region', 'inform', 'evidence_id', 'comment'
+        'city', 'region', 'inform', 'comment'
     ];
 
     public $timestamps = false;
 
     protected $casts = [
-        'date' => 'date',
         'total_people' => 'integer',
         'total_women' => 'integer',
         'total_men' => 'integer',
         'total_ethnicity' => 'integer',
         'total_deshabilities' => 'integer',
         'user_id' => 'integer',
-        'evidence_id' => 'integer'
     ];
 
     public function goal()
@@ -42,4 +40,10 @@ class Report extends Model
     {
         return $this->belongsTo(Region::class, 'region');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('password', 128);
             $table->integer('user_number')->unique();
             $table->string('job', 128);
+            $table->string('status', 128);
             $table->integer('level');
         });
     }

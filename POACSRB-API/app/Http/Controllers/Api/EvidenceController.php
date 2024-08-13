@@ -48,16 +48,7 @@ class EvidenceController extends Controller
     }
 
 
-
-
-    public function testUpload(Request $request)
-{
-    $file = $request->file('evidence');
-    $path = $file->store('evidence', 'public');
-    return response()->json(['path' => $path]);
-}
-
-public function store(Request $request)
+public function insert(Request $request)
 {
     // Validar la solicitud
     $request->validate([
@@ -80,5 +71,27 @@ public function store(Request $request)
     // Devolver una respuesta de éxito en la base de datos
     return response()->json(['path' => $path]);
 }
+
+public function delete($id)
+{
+    try {
+        // Encuentra el registro por ID
+        $evidence = Evidence::findOrFail($id);
+
+        // Elimina el registro
+        $evidence->delete();
+
+        // Retorna una respuesta de éxito
+        return response()->json(['message' => 'Evidence deleted successfully.'], 200);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Si no se encuentra el registro, retorna un error 404
+        return response()->json(['error' => 'Evidence not found'], 404);
+    } catch (\Exception $e) {
+        // Maneja otros errores
+        \Log::error('Error deleting evidence: ' . $e->getMessage());
+        return response()->json(['error' => 'An error occurred while deleting the evidence. Please try again later.'], 500);
+    }
+}
+
 
 }

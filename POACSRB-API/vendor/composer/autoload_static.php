@@ -386,8 +386,8 @@ class ComposerStaticInit9c491b8531eec05ba41a11d9276a5749
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -435,8 +435,8 @@ class ComposerStaticInit9c491b8531eec05ba41a11d9276a5749
         ),
         'League\\Uri\\' => 
         array (
-            0 => __DIR__ . '/..' . '/league/uri-interfaces',
-            1 => __DIR__ . '/..' . '/league/uri',
+            0 => __DIR__ . '/..' . '/league/uri',
+            1 => __DIR__ . '/..' . '/league/uri-interfaces',
         ),
         'League\\OAuth2\\Server\\' => 
         array (
@@ -610,6 +610,8 @@ class ComposerStaticInit9c491b8531eec05ba41a11d9276a5749
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\Api\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/AuthController.php',
         'App\\Http\\Controllers\\Api\\CityController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/CityController.php',
+        'App\\Http\\Controllers\\Api\\EvidenceController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/EvidenceController.php',
+        'App\\Http\\Controllers\\Api\\ReportController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/ReportController.php',
         'App\\Http\\Controllers\\Api\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Api/UserController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Kernel' => __DIR__ . '/../..' . '/app/Http/Kernel.php',
@@ -623,7 +625,9 @@ class ComposerStaticInit9c491b8531eec05ba41a11d9276a5749
         'App\\Http\\Middleware\\ValidateSignature' => __DIR__ . '/../..' . '/app/Http/Middleware/ValidateSignature.php',
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
         'App\\Models\\City' => __DIR__ . '/../..' . '/app/Models/City.php',
-        'App\\Models\\Region' => __DIR__ . '/../..' . '/app/Models/Region.php',
+        'App\\Models\\Evidence' => __DIR__ . '/../..' . '/app/Models/Evidence.php',
+        'App\\Models\\Goal' => __DIR__ . '/../..' . '/app/Models/Goal.php',
+        'App\\Models\\Report' => __DIR__ . '/../..' . '/app/Models/Report.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\AuthServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AuthServiceProvider.php',
@@ -743,7 +747,7 @@ class ComposerStaticInit9c491b8531eec05ba41a11d9276a5749
         'Database\\Factories\\UserFactory' => __DIR__ . '/../..' . '/database/factories/UserFactory.php',
         'Database\\Seeders\\CitieSeeder' => __DIR__ . '/../..' . '/database/seeders/CitieSeeder.php',
         'Database\\Seeders\\DatabaseSeeder' => __DIR__ . '/../..' . '/database/seeders/DatabaseSeeder.php',
-        'Database\\Seeders\\RegionSeeder' => __DIR__ . '/../..' . '/database/seeders/RegionSeeder.php',
+        'Database\\Seeders\\GoalsSeeder' => __DIR__ . '/../..' . '/database/seeders/GoalsSeeder.php',
         'DateError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateError.php',
         'DateException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateException.php',
         'DateInvalidOperationException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidOperationException.php',
@@ -2902,6 +2906,7 @@ class ComposerStaticInit9c491b8531eec05ba41a11d9276a5749
         'Laravel\\Passport\\Contracts\\AuthorizationViewResponse' => __DIR__ . '/..' . '/laravel/passport/src/Contracts/AuthorizationViewResponse.php',
         'Laravel\\Passport\\Database\\Factories\\ClientFactory' => __DIR__ . '/..' . '/laravel/passport/database/factories/ClientFactory.php',
         'Laravel\\Passport\\Events\\AccessTokenCreated' => __DIR__ . '/..' . '/laravel/passport/src/Events/AccessTokenCreated.php',
+        'Laravel\\Passport\\Events\\AccessTokenRevoked' => __DIR__ . '/..' . '/laravel/passport/src/Events/AccessTokenRevoked.php',
         'Laravel\\Passport\\Events\\RefreshTokenCreated' => __DIR__ . '/..' . '/laravel/passport/src/Events/RefreshTokenCreated.php',
         'Laravel\\Passport\\Exceptions\\AuthenticationException' => __DIR__ . '/..' . '/laravel/passport/src/Exceptions/AuthenticationException.php',
         'Laravel\\Passport\\Exceptions\\InvalidAuthTokenException' => __DIR__ . '/..' . '/laravel/passport/src/Exceptions/InvalidAuthTokenException.php',

@@ -55,11 +55,31 @@ class UserController extends Controller
                 'password' => Hash::make($request->password),
                 'user_number' => $request->user_number,
                 'job' => $request->job,
+                'status' => 'activo',
                 'level' => $request->level,
             ]);
             $user->save();
     
-            return response()->json(['message' => 'User successfully created'], 201);
+            // Cargar el usuario creado (para incluir datos en la respuesta)
+            $createdUser = User::find($user->id);
+    
+            // Transformar la información del usuario
+            $transformedUser = [
+                'id' => $createdUser->id,
+                'user' => $createdUser->user,
+                'email' => $createdUser->email,
+                'user_number' => $createdUser->user_number,
+                'job' => $createdUser->job,
+                'status' => $createdUser->status,
+                'level' => $createdUser->level,
+            ];
+    
+            // Devolver la información del usuario creado en la respuesta
+            return response()->json([
+                'message' => 'User successfully created',
+                'user' => $transformedUser
+            ], 201);
+    
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while creating the user. Please try again later.'], 500);
         }
@@ -75,6 +95,7 @@ class UserController extends Controller
             'password' => 'string|max:128|nullable',
             'user_number' => 'required|integer|unique:users,user_number,' . $id,
             'job' => 'required|string|max:128',
+            'status' => 'required|string|max:128',
             'level' => 'required|integer',
         ], [
             'email.unique' => 'The email is already registered',
@@ -90,6 +111,7 @@ class UserController extends Controller
         }
         $user->user_number = $request->user_number;
         $user->job = $request->job;
+        $user->status = $request->status;
         $user->level = $request->level;
 
         $user->save();

@@ -22,7 +22,7 @@ use App\Http\Controllers\Api\EvidenceController;
 |
 */
 
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -55,6 +55,8 @@ Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalCo
 
 Route::get('/report', [ReportController::class, 'search']);
 Route::post('/test-upload', [EvidenceController::class, 'testUpload']);
-Route::post('evidences', [EvidenceController::class, 'store']);
+Route::post('evidences', [EvidenceController::class, 'insert']);
 Route::get('/evidences', [EvidenceController::class, 'index']);
+Route::post('/evidences/{id}', [EvidenceController::class, 'delete']);
+
 

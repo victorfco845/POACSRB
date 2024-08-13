@@ -7,80 +7,84 @@ use Illuminate\Http\Request;
 use App\Models\Report;
 use App\Models\Goal;
 use App\Models\City;
+use App\Models\User;
 use Carbon\Carbon;
 
 
 class ReportController extends Controller
 {
     public function index()
-{
-    try {
-        // Obtener todos los informes con las relaciones cargadas
-        $reports = Report::with('goal')->get();
+    {
+        try {
+            $reports = Report::with('user')->get();
 
-        if ($reports->isEmpty()) {
-            return response()->json(['message' => 'No reports found.'], 404);
+    
+            // Transforma los informes
+            $transformedReports = $reports->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'goal' => $report->goal->goal ?? 'N/A',
+                    'comission_number' => $report->comission_number,
+                    'date' => $report->date,
+                    'user' => $report->user ? $report->user->user : 'Unknown User',
+                    'total_people' => $report->total_people,
+                    'total_women' => $report->total_women,
+                    'total_men' => $report->total_men,
+                    'total_ethnicity' => $report->total_ethnicity,
+                    'total_deshabilities' => $report->total_deshabilities,
+                    'city' => $report->city,
+                    'region' => $report->region,
+                    'inform' => $report->inform,
+                    'comment' => $report->comment,
+                ];
+            });
+    
+            return response()->json($transformedReports);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching the reports: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $transformedReports = $reports->map(function ($report) {
-            return [
-                'id' => $report->id,
-                'title' => $report->title,
-                'goal' => $report->goal->goal ?? 'N/A',
-                'comission_number' => $report->comission_number,
-                'date' => $report->date,
-                'user_id' => $report->user_id,
-                'total_people' => $report->total_people,
-                'total_women' => $report->total_women,
-                'total_men' => $report->total_men,
-                'total_ethnicity' => $report->total_ethnicity,
-                'total_deshabilities' => $report->total_deshabilities,
-                'city' => $report->city,
-                'region' => $report->region,
-                'inform' => $report->inform,
-                'evidence_id' => $report->evidence_id,
-                'comment' => $report->comment,
-            ];
-        });
-
-        return response()->json($transformedReports);
-    } catch (\Exception $e) {
-        \Log::error('Error fetching the reports: ' . $e->getMessage());
-        return response()->json(['error' => 'An error occurred while fetching the reports.'], 500);
     }
-}
-public function show($id)
+    
+
+    public function show($id)
 {
     try {
-        // Obtener el reporte con el goal relacionado
-        $report = Report::with('goal')->findOrFail($id);
+        // Encuentra el informe por ID
+        $report = Report::with('user')->findOrFail($id);
 
-        return response()->json([
+        // Transforma el informe
+        $transformedReport = [
             'id' => $report->id,
             'title' => $report->title,
-            'goal' => $report->goal->goal,
+            'goal' => $report->goal->goal ?? 'N/A',
             'comission_number' => $report->comission_number,
             'date' => $report->date,
-            'user_id' => $report->user_id,
+            'user' => $report->user ? $report->user->user : 'Unknown User',
             'total_people' => $report->total_people,
             'total_women' => $report->total_women,
             'total_men' => $report->total_men,
             'total_ethnicity' => $report->total_ethnicity,
             'total_deshabilities' => $report->total_deshabilities,
+            'city' => $report->city,
+            'region' => $report->region,
             'inform' => $report->inform,
-            'evidence' => $report->evidence_id,
             'comment' => $report->comment,
-        ]);
+        ];
+
+        return response()->json($transformedReport);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['error' => 'Report not found'], 404);
     } catch (\Exception $e) {
         \Log::error('Error fetching the report: ' . $e->getMessage());
-        return response()->json(['error' => 'An error occurred while fetching the report.'], 500);
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
-    
-        
 public function create(Request $request)
 {
+    // Validación de los datos de entrada
     $request->validate([
         'title' => 'required|string|max:128',
         'goal_id' => 'required|integer',
@@ -95,10 +99,10 @@ public function create(Request $request)
         'city' => 'required|integer',
         'region' => 'required|integer',
         'inform' => 'required|string|max:2500',
-        'evidence_id' => 'required|integer',
         'comment' => 'nullable|string|max:400',
     ]);
 
+    // Crea una nueva instancia del reporte
     $report = new Report([
         'title' => $request->input('title'),
         'goal_id' => $request->input('goal_id'),
@@ -113,14 +117,41 @@ public function create(Request $request)
         'city' => $request->input('city'),
         'region' => $request->input('region'),
         'inform' => $request->input('inform'),
-        'evidence_id' => $request->input('evidence_id'),
         'comment' => $request->input('comment'),
     ]);
 
+    // Guarda el reporte en la base de datos
     $report->save();
 
-    return response()->json(['message' => 'Reporte creado exitosamente.'], 201);
+    // Encuentra el reporte recién creado y carga la información relacionada
+    $createdReport = Report::with('user')->find($report->id);
+
+    // Transforma la información del reporte
+    $transformedReport = [
+        'id' => $createdReport->id,
+        'title' => $createdReport->title,
+        'goal' => $createdReport->goal->goal ?? 'N/A',
+        'comission_number' => $createdReport->comission_number,
+        'date' => $createdReport->date,
+        'user' => $createdReport->user ? $createdReport->user->user : 'Unknown User',
+        'total_people' => $createdReport->total_people,
+        'total_women' => $createdReport->total_women,
+        'total_men' => $createdReport->total_men,
+        'total_ethnicity' => $createdReport->total_ethnicity,
+        'total_deshabilities' => $createdReport->total_deshabilities,
+        'city' => $createdReport->city,
+        'region' => $createdReport->region,
+        'inform' => $createdReport->inform,
+        'comment' => $createdReport->comment,
+    ];
+
+    // Devuelve la información del reporte creado en la respuesta
+    return response()->json([
+        'message' => 'Reporte creado exitosamente.',
+        'report' => $transformedReport
+    ], 201);
 }
+
     
     
 public function update(Request $request, $id)
@@ -140,7 +171,6 @@ public function update(Request $request, $id)
         'city' => 'required|integer',
         'region' => 'required|integer',
         'inform' => 'required|string|max:2500',
-        'evidence_id' => 'required|integer',
         'comment' => 'nullable|string|max:400',
     ]);
 
@@ -210,7 +240,8 @@ public function update(Request $request, $id)
             ->orderBy('total_personas', 'desc')
             ->get();
 
-        return response()->json($results);
+        return response()->json($results); 
+
             }
         
         public function getTotalPersonasPorRegion()
@@ -260,7 +291,8 @@ public function update(Request $request, $id)
                              DB::raw('SUM(total_men) as total_hombres'),
                              DB::raw('SUM(total_ethnicity) as total_etnia'),
                              DB::raw('SUM(total_deshabilities) as total_deshacitados'))
-                ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 120), \'yyyy-MM\')'), $monthNumbers)
+                ->whereIn(DB::raw('FORMAT(  "evidence_id": 1,
+TRY_CONVERT(datetime, date, 120), \'yyyy-MM\')'), $monthNumbers)
                 ->groupBy(DB::raw('YEAR(TRY_CONVERT(datetime, date, 120))'), DB::raw('MONTH(TRY_CONVERT(datetime, date, 120))'))
                 ->get();
         
