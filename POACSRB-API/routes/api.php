@@ -22,28 +22,28 @@ use App\Http\Controllers\Api\EvidenceController;
 |
 */
 
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-Route::get('/users', [UserController::class, 'list']);
-Route::get('/users/{id}', [UserController::class, 'id']);
-Route::post('/usercreate', [UserController::class, 'create']);
-Route::post('/userupdate/{id}', [UserController::class, 'update']);
 
 Route::middleware('auth:api')->post('/authtoken', [AuthController::class, 'authtoken']);
 Route::post('/', function (Request $request) {
     return response()->json(['message' => 'POST method for root route is not allowed'], 405);
 });
 
-Route::get('/cities', [CityController::class, 'index']);
-Route::get('/cities/{id}', [CityController::class, 'show']);
 
-Route::get('/reports', [ReportController::class, 'index']);
-Route::get('/reports/{id}', [ReportController::class, 'show']);
-Route::post('/reports', [ReportController::class, 'create']);
-Route::post('/reports/{id}', [ReportController::class, 'update']);
-Route::delete('/reports/{id}', [ReportController::class, 'delete']);
+Route::middleware(['auth:api', 'check.user.level'])->group(function () {
+    Route::get('/reports', [ReportController::class, 'index']);
+    Route::post('/reports', [ReportController::class, 'create']);
+    Route::post('/reports/{id}', [ReportController::class, 'update']);
+    Route::delete('/reports/{id}', [ReportController::class, 'delete']);
+
+Route::get('/users', [UserController::class, 'list']);
+Route::get('/users/{id}', [UserController::class, 'id']);
+Route::post('/usercreate', [UserController::class, 'create']);
+Route::post('/userupdate/{id}', [UserController::class, 'update']);
+
 
 Route::get('/total-personas-por-meta', [ReportController::class, 'getTotalPersonasPorMeta']);
 Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
@@ -53,10 +53,16 @@ Route::get('/total-comisiones-por-meta', [ReportController::class, 'getTotalComi
 Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
 Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
 
+
+Route::get('/cities', [CityController::class, 'index']);
+Route::get('/cities/{id}', [CityController::class, 'show']);
+
+
+
 Route::get('/report', [ReportController::class, 'search']);
 Route::post('/test-upload', [EvidenceController::class, 'testUpload']);
 Route::post('evidences', [EvidenceController::class, 'insert']);
 Route::get('/evidences', [EvidenceController::class, 'index']);
 Route::post('/evidences/{id}', [EvidenceController::class, 'delete']);
 
-
+});
