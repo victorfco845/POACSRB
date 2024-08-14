@@ -35,9 +35,9 @@ Route::post('/', function (Request $request) {
 
 Route::middleware(['auth:api', 'check.user.level'])->group(function () {
     Route::get('/reports', [ReportController::class, 'index']);
-    Route::post('/reports', [ReportController::class, 'create']);
-    Route::post('/reports/{id}', [ReportController::class, 'update']);
-    Route::delete('/reports/{id}', [ReportController::class, 'delete']);
+    Route::post('/reportcreate', [ReportController::class, 'create']);
+    Route::post('/reportupdate/{id}', [ReportController::class, 'update']);
+    Route::delete('/reportdelete/{id}', [ReportController::class, 'delete']);
 
 Route::get('/users', [UserController::class, 'list']);
 Route::get('/users/{id}', [UserController::class, 'id']);
@@ -57,12 +57,9 @@ Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalCo
 Route::get('/cities', [CityController::class, 'index']);
 Route::get('/cities/{id}', [CityController::class, 'show']);
 
-
-
 Route::get('/report', [ReportController::class, 'search']);
-Route::post('/test-upload', [EvidenceController::class, 'testUpload']);
-Route::post('evidences', [EvidenceController::class, 'insert']);
+Route::post('evidenceinsert', [EvidenceController::class, 'insert']);
 Route::get('/evidences', [EvidenceController::class, 'index']);
-Route::post('/evidences/{id}', [EvidenceController::class, 'delete']);
+Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 
 });

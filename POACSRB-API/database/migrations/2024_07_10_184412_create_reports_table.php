@@ -23,8 +23,8 @@ return new class extends Migration
             $table->integer('total_men');
             $table->integer('total_ethnicity');
             $table->integer('total_deshabilities');
-            $table->integer('city');
-            $table->integer('region');
+            $table->string('city', 128);
+            $table->string('region', 128);
             $table->text('inform', 2500);
             $table->text('comment', 400)->nullable();
         });
