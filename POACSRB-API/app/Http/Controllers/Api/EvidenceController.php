@@ -48,30 +48,30 @@ class EvidenceController extends Controller
     }
 
 
-public function insert(Request $request)
-{
-    // Validar la solicitud
-    $request->validate([
-        'evidence' => 'required|image', // Validar que sea una imagen
-        'report_id' => 'required|exists:reports,id', // Validar que el report_id exista en la tabla reports
-    ]);
-
-    // Obtener el archivo de la solicitud
-    $file = $request->file('evidence');
+    public function insert(Request $request)
+    {
+        // Validar la solicitud
+        $request->validate([
+            'evidence' => 'required|image', // Validar que sea una imagen
+            'report_id' => 'required|exists:reports,id', // Validar que el report_id exista en la tabla reports
+        ]);
     
-    // Almacenar el archivo y obtener la ruta
-    $path = $file->store('evidence', 'public'); // Guardar en storage/app/public/evidence
-
-    // Crear un nuevo registro en la base de datos
-    Evidence::create([
-        'evidence' => $path, // Guardar la ruta del archivo
-        'report_id' => $request->input('report_id'), // Asociar con el ID del reporte
-    ]);
-
-    // Devolver una respuesta de éxito en la base de datos
-    return response()->json(['path' => $path]);
-}
-
+        // Obtener el archivo de la solicitud
+        $file = $request->file('evidence');
+    
+        // Almacenar el archivo y obtener la ruta
+        $path = $file->store('evidence', 'public'); // Guardar en storage/app/public/evidence
+    
+        // Crear un nuevo registro en la base de datos
+        Evidence::create([
+            'evidence' => $path, // Guardar la ruta del archivo
+            'report_id' => $request->input('report_id'), // Asociar con el ID del reporte
+        ]);
+    
+        // Devolver una respuesta de éxito con la ruta del archivo
+        return response()->json(['path' => asset('storage/' . $path)]);
+    }
+    
 public function delete($id)
 {
     try {
@@ -93,6 +93,22 @@ public function delete($id)
     }
 }
 
+public function searchforid($reportId)
+{
+    // Buscar todas las evidencias por el report_id
+    $evidences = Evidence::where('report_id', $reportId)->get();
 
+    if ($evidences->isEmpty()) {
+        return response()->json(['message' => 'No evidence found'], 404);
+    }
+
+    // Generar URLs completas para cada evidencia
+    $evidences->transform(function ($evidence) {
+        $evidence->evidence = asset('storage/' . $evidence->evidence);
+        return $evidence;
+    });
+
+    return response()->json($evidences);
+}
 
 }

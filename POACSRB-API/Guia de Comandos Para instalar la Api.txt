@@ -10,3 +10,4 @@ php artisan storage:link
 
 php artisan db:seed --class=UserSeeder
 php artisan db:seed --class=ReportSeeder
+php artisan db:seed --class=EvidenceSeeder
