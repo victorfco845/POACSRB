@@ -87,11 +87,12 @@ public function delete($id)
         // Si no se encuentra el registro, retorna un error 404
         return response()->json(['error' => 'Evidence not found'], 404);
     } catch (\Exception $e) {
-        // Maneja otros errores
+        // Manejo a otros errores
         \Log::error('Error deleting evidence: ' . $e->getMessage());
         return response()->json(['error' => 'An error occurred while deleting the evidence. Please try again later.'], 500);
     }
 }
+
 
 
 }

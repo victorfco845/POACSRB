@@ -162,7 +162,6 @@ public function update(Request $request, $id)
         'goal_id' => 'required|integer', // Asegúrate de que sea un ID entero
         'comission_number' => 'required|string|max:128',
         'date' => 'required|string|max:128',
-        'user_id' => 'required|integer',
         'total_people' => 'required|integer',
         'total_women' => 'required|integer',
         'total_men' => 'required|integer',
@@ -262,7 +261,6 @@ public function update(Request $request, $id)
 
         return response()->json($results);
         }
-
         public function getTotalPersonasPorMes()
         {
             $currentYear = date('Y');
@@ -274,7 +272,8 @@ public function update(Request $request, $id)
                 $date = \Carbon\Carbon::create($currentYear, $currentMonth)->subMonths($i);
                 $months[] = [
                     'year' => $date->year,
-                    'month' => $date->month
+                    'month' => $date->month,
+                    'month_name' => $date->format('F') // Aquí obtenemos el nombre del mes
                 ];
             }
         
@@ -285,23 +284,29 @@ public function update(Request $request, $id)
         
             // Consulta SQL para obtener los datos
             $results = DB::table('reports')
-                ->select(DB::raw('YEAR(TRY_CONVERT(datetime, date, 120)) as year'), DB::raw('MONTH(TRY_CONVERT(datetime, date, 120)) as month'), 
-                             DB::raw('SUM(total_people) as total_personas'),
-                             DB::raw('SUM(total_women) as total_mujeres'),
-                             DB::raw('SUM(total_men) as total_hombres'),
-                             DB::raw('SUM(total_ethnicity) as total_etnia'),
-                             DB::raw('SUM(total_deshabilities) as total_deshacitados'))
-                ->whereIn(DB::raw('FORMAT(  "evidence_id": 1,
-TRY_CONVERT(datetime, date, 120), \'yyyy-MM\')'), $monthNumbers)
-                ->groupBy(DB::raw('YEAR(TRY_CONVERT(datetime, date, 120))'), DB::raw('MONTH(TRY_CONVERT(datetime, date, 120))'))
+                ->select(
+                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103)) as year'), // 103 para el formato DD/MM/YYYY
+                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103)) as month'), 
+                    DB::raw('SUM(total_people) as total_personas'),
+                    DB::raw('SUM(total_women) as total_mujeres'),
+                    DB::raw('SUM(total_men) as total_hombres'),
+                    DB::raw('SUM(total_ethnicity) as total_etnia'),
+                    DB::raw('SUM(total_deshabilities) as total_deshacitados')
+                )
+                ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 103), \'yyyy-MM\')'), $monthNumbers)
+                ->groupBy(
+                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103))'), 
+                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103))')
+                )
                 ->get();
-        
+                
+                
             // Crear un array con todos los meses para asegurarnos de que todos los meses están representados
             $data = [];
             foreach ($months as $month) {
                 $key = $month['year'] . '-' . str_pad($month['month'], 2, '0', STR_PAD_LEFT);
                 $data[$key] = [
-                    'month' => $month['month'],
+                    'month_name' => $month['month_name'], // Usamos el nombre del mes aquí
                     'year' => $month['year'],
                     'total_personas' => 0,
                     'total_mujeres' => 0,
@@ -310,7 +315,7 @@ TRY_CONVERT(datetime, date, 120), \'yyyy-MM\')'), $monthNumbers)
                     'total_discapacitados' => 0
                 ];
             }
-
+        
             // Rellenar los datos de la consulta en el array de datos
             foreach ($results as $result) {
                 $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);
@@ -323,19 +328,55 @@ TRY_CONVERT(datetime, date, 120), \'yyyy-MM\')'), $monthNumbers)
                 }
             }
         
-            // Ordenar los datos del mes actual hacia atrás
+            // Ordenar los datpublic function index()
+    {
+        try {
+            $reports = Report::with('user')->get();
+
+    
+            // Transforma los informes
+            $transformedReports = $reports->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'goal' => $report->goal->goal ?? 'N/A',
+                    'comission_number' => $report->comission_number,
+                    'date' => $report->date,
+                    'user' => $report->user ? $report->user->user : 'Unknown User',
+                    'total_people' => $report->total_people,
+                    'total_women' => $report->total_women,
+                    'total_men' => $report->total_men,
+                    'total_ethnicity' => $report->total_ethnicity,
+                    'total_deshabilities' => $report->total_deshabilities,
+                    'city' => $report->city,
+                    'region' => $report->region,
+                    'inform' => $report->inform,
+                    'comment' => $report->comment,
+                ];
+            });
+    
+            return response()->json($transformedReports);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching the reports: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
             uasort($data, function($a, $b) {
-                // Primero comparar años
                 if ($a['year'] === $b['year']) {
-                    // Si los años son iguales, comparar meses
                     return $b['month'] - $a['month'];
                 }
-                // Si los años son diferentes, ordenar por año
                 return $b['year'] - $a['year'];
             });
         
-            return response()->json(array_values($data));
+            // Convertir el formato de fecha antes de devolver la respuesta
+            $formattedData = array_map(function($entry) {
+                return $entry;
+            }, $data);
+        
+            return response()->json(array_values($formattedData));
         }
+        
+        
         
         
         public function getTotalComisionesPorMeta()
@@ -391,37 +432,68 @@ TRY_CONVERT(datetime, date, 120), \'yyyy-MM\')'), $monthNumbers)
         }
         
 
-        public function busqueda(Request $request)
+        public function search(Request $request)
         {
-            $query = Report::query();
-    
+            $query = Report::with(['user', 'goal']); // Cargar relaciones con user y goal
+        
             if ($request->has('title')) {
                 $query->where('title', 'like', '%' . $request->input('title') . '%');
             }
-    
-            if ($request->has('goal_id')) {
-                $query->where('goal_id', $request->input('goal_id'));
+        
+            // Buscar por nombre del goal en lugar del goal_id
+            if ($request->has('goal')) {
+                $query->whereHas('goal', function ($q) use ($request) {
+                    $q->where('goal', 'like', '%' . $request->input('goal') . '%');
+                });
             }
-    
+        
             if ($request->has('comission_number')) {
                 $query->where('comission_number', 'like', '%' . $request->input('comission_number') . '%');
             }
-    
+        
+               // Buscar por ciudad (string)
             if ($request->has('city')) {
-                $query->where('city', $request->input('city'));
+                $query->where('city', 'like', '%' . $request->input('city') . '%');
             }
-    
+
+                // Buscar por región (string)
             if ($request->has('region')) {
-                $query->where('region', $request->input('region'));
+                $query->where('region', 'like', '%' . $request->input('region') . '%');
             }
-    
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->input('user_id'));
+        
+            // Buscar por nombre de usuario en lugar del user_id
+            if ($request->has('user')) {
+                $query->whereHas('user', function ($q) use ($request) {
+                    $q->where('user', 'like', '%' . $request->input('user') . '%');
+                });
             }
-    
+        
             $reports = $query->get();
-    
-            return response()->json($reports);
+        
+            // Transformar los resultados
+            $transformedReports = $reports->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'goal' => $report->goal->goal ?? 'N/A',
+                    'comission_number' => $report->comission_number,
+                    'date' => $report->date,
+                    'user' => $report->user ? $report->user->user : 'Unknown User',
+                    'total_people' => $report->total_people,
+                    'total_women' => $report->total_women,
+                    'total_men' => $report->total_men,
+                    'total_ethnicity' => $report->total_ethnicity,
+                    'total_deshabilities' => $report->total_deshabilities,
+                    'city' => $report->city,
+                    'region' => $report->region,
+                    'inform' => $report->inform,
+                    'comment' => $report->comment,
+                ];
+            });
+        
+            return response()->json($transformedReports);
         }
+        
+        
     }
     

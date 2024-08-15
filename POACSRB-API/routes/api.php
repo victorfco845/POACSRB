@@ -33,7 +33,6 @@ Route::post('/', function (Request $request) {
 });
 
 
-Route::middleware(['auth:api', 'check.user.level'])->group(function () {
     Route::get('/reports', [ReportController::class, 'index']);
     Route::post('/reportcreate', [ReportController::class, 'create']);
     Route::post('/reportupdate/{id}', [ReportController::class, 'update']);
@@ -62,4 +61,3 @@ Route::post('evidenceinsert', [EvidenceController::class, 'insert']);
 Route::get('/evidences', [EvidenceController::class, 'index']);
 Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 
-});
