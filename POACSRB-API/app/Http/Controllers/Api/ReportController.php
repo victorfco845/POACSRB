@@ -96,8 +96,8 @@ public function create(Request $request)
         'total_men' => 'required|integer',
         'total_ethnicity' => 'required|integer',
         'total_deshabilities' => 'required|integer',
-        'city' => 'required|integer',
-        'region' => 'required|integer',
+        'city' => 'required|string|max:128',
+        'region' => 'required|string|max:128',
         'inform' => 'required|string|max:2500',
         'comment' => 'nullable|string|max:400',
     ]);
@@ -167,8 +167,8 @@ public function update(Request $request, $id)
         'total_men' => 'required|integer',
         'total_ethnicity' => 'required|integer',
         'total_deshabilities' => 'required|integer',
-        'city' => 'required|integer',
-        'region' => 'required|integer',
+        'city' => 'required|string|max:128',
+        'region' => 'required|string|max:128',
         'inform' => 'required|string|max:2500',
         'comment' => 'nullable|string|max:400',
     ]);
