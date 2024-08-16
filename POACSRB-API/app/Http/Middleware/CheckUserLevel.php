@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class CheckUserLevel
 {
@@ -18,6 +19,9 @@ class CheckUserLevel
          // Asegurarse de que el usuario esté autenticado
          $user = Auth::user();
 
+         if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado.'], 401);
+        }
          // Verificar si el usuario tiene level 1 o 2
          if ($user && in_array($user->level, [1, 2])) {
              return $next($request);

@@ -64,3 +64,5 @@ Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 Route::get('/evidences/{id}', [EvidenceController::class, 'show']);
 Route::get('/evidenceid/{id}', [EvidenceController::class, 'searchforid']);
 
+
+   

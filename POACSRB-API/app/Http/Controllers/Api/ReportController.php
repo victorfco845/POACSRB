@@ -203,18 +203,20 @@ public function update(Request $request, $id)
         {
             try {
                 // Consultar el total de personas, mujeres, hombres, etnia y discapacitados por meta
-                $totalPersonasPorMeta = Report::select(
-                    'goals.goal',
-                    DB::raw('SUM(total_people) as total_personas'),
-                    DB::raw('SUM(total_women) as total_mujeres'),
-                    DB::raw('SUM(total_men) as total_hombres'),
-                    DB::raw('SUM(total_ethnicity) as total_etnia'),
-                    DB::raw('SUM(total_deshabilities) as total_discapacitados')
-                )
-                ->join('goals', 'reports.goal_id', '=', 'goals.id')
-                ->groupBy('goals.goal')
-                ->get();
-        
+                $totalPersonasPorMeta = DB::table('goals')
+                    ->leftJoin('reports', 'goals.id', '=', 'reports.goal_id')
+                    ->select(
+                        'goals.goal',
+                        DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_men AS BIGINT)), 0) as total_hombres'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_ethnicity AS BIGINT)), 0) as total_etnia'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados')
+                    )
+                    ->groupBy('goals.id', 'goals.goal')
+                    ->orderBy('goals.id')
+                    ->get();
+                
                 return response()->json(['total_personas_por_meta' => $totalPersonasPorMeta]);
             } catch (\Exception $e) {
                 \Log::error('Error fetching total personas por meta: ' . $e->getMessage());
@@ -225,157 +227,135 @@ public function update(Request $request, $id)
         
         public function getTotalPersonasPorMunicipio()
         {
-            $results = DB::table('cities')
-            ->leftJoin('reports', 'cities.id', '=', 'reports.city')
-            ->select(
-                'cities.city',
-                DB::raw('COALESCE(SUM(reports.total_people), 0) as total_personas'),
-                DB::raw('COALESCE(SUM(reports.total_women), 0) as total_mujeres'),
-                DB::raw('COALESCE(SUM(reports.total_men), 0) as total_hombres'),
-                DB::raw('COALESCE(SUM(reports.total_ethnicity), 0) as total_etnia'),
-                DB::raw('COALESCE(SUM(reports.total_deshabilities), 0) as total_discapacitados')
-            )
-            ->groupBy('cities.city')
-            ->orderBy('total_personas', 'desc')
-            ->get();
-
-        return response()->json($results); 
-
+            try {
+                $results = DB::table('cities')
+                    ->leftJoin('reports', 'cities.city', '=', 'reports.city')
+                    ->select(
+                        'cities.city',
+                        DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_men AS BIGINT)), 0) as total_hombres'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_ethnicity AS BIGINT)), 0) as total_etnia'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados')
+                    )
+                    ->groupBy('cities.city')
+                    ->orderBy('cities.city') // Ordena alfabéticamente por nombre de la ciudad
+                    ->get();
+        
+                return response()->json($results);
+            } catch (\Exception $e) {
+                \Log::error('Error fetching total personas por municipio: ' . $e->getMessage());
+                return response()->json(['error' => 'An error occurred while fetching total personas por municipio.'], 500);
             }
+        }
+        
         
         public function getTotalPersonasPorRegion()
         {
-            $results = DB::table('cities')
-            ->leftJoin('reports', 'cities.id', '=', 'reports.city')
-            ->select(
-                'cities.region',
-                DB::raw('COALESCE(SUM(reports.total_people), 0) as total_personas'),
-                DB::raw('COALESCE(SUM(reports.total_women), 0) as total_mujeres'),
-                DB::raw('COALESCE(SUM(reports.total_men), 0) as total_hombres'),
-                DB::raw('COALESCE(SUM(reports.total_ethnicity), 0) as total_etnia'),
-                DB::raw('COALESCE(SUM(reports.total_deshabilities), 0) as total_discapacitados')
-            )
-            ->groupBy('cities.region')
-            ->orderBy('total_personas', 'desc')
-            ->get();
-
-        return response()->json($results);
+            try {
+                $results = DB::table('cities')
+                    ->leftJoin('reports', 'cities.region', '=', 'reports.region')
+                    ->select(
+                        'cities.region',
+                        DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_men AS BIGINT)), 0) as total_hombres'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_ethnicity AS BIGINT)), 0) as total_etnia'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados')
+                    )
+                    ->groupBy('cities.region')
+                    ->orderBy('total_personas', 'desc')
+                    ->get();
+        
+                return response()->json($results);
+            } catch (\Exception $e) {
+                \Log::error('Error fetching total personas por region: ' . $e->getMessage());
+                return response()->json(['error' => 'An error occurred while fetching total personas por region.'], 500);
+            }
         }
+        
         public function getTotalPersonasPorMes()
-        {
-            $currentYear = date('Y');
-            $currentMonth = date('m');
-            
-            // Generar los últimos 12 meses, incluyendo el mes actual
-            $months = [];
-            for ($i = 0; $i < 12; $i++) {
-                $date = \Carbon\Carbon::create($currentYear, $currentMonth)->subMonths($i);
-                $months[] = [
-                    'year' => $date->year,
-                    'month' => $date->month,
-                    'month_name' => $date->format('F') // Aquí obtenemos el nombre del mes
-                ];
-            }
-        
-            // Convertir los meses en un formato adecuado para la consulta
-            $monthNumbers = array_map(function($month) {
-                return sprintf('%04d-%02d', $month['year'], $month['month']);
-            }, $months);
-        
-            // Consulta SQL para obtener los datos
-            $results = DB::table('reports')
-                ->select(
-                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103)) as year'), // 103 para el formato DD/MM/YYYY
-                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103)) as month'), 
-                    DB::raw('SUM(total_people) as total_personas'),
-                    DB::raw('SUM(total_women) as total_mujeres'),
-                    DB::raw('SUM(total_men) as total_hombres'),
-                    DB::raw('SUM(total_ethnicity) as total_etnia'),
-                    DB::raw('SUM(total_deshabilities) as total_deshacitados')
-                )
-                ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 103), \'yyyy-MM\')'), $monthNumbers)
-                ->groupBy(
-                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103))'), 
-                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103))')
-                )
-                ->get();
-                
-                
-            // Crear un array con todos los meses para asegurarnos de que todos los meses están representados
-            $data = [];
-            foreach ($months as $month) {
-                $key = $month['year'] . '-' . str_pad($month['month'], 2, '0', STR_PAD_LEFT);
-                $data[$key] = [
-                    'month_name' => $month['month_name'], // Usamos el nombre del mes aquí
-                    'year' => $month['year'],
-                    'total_personas' => 0,
-                    'total_mujeres' => 0,
-                    'total_hombres' => 0,
-                    'total_etnia' => 0,
-                    'total_discapacitados' => 0
-                ];
-            }
-        
-            // Rellenar los datos de la consulta en el array de datos
-            foreach ($results as $result) {
-                $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);
-                if (isset($data[$key])) {
-                    $data[$key]['total_personas'] = $result->total_personas;
-                    $data[$key]['total_mujeres'] = $result->total_mujeres;
-                    $data[$key]['total_hombres'] = $result->total_hombres;
-                    $data[$key]['total_etnia'] = $result->total_etnia;
-                    $data[$key]['total_discapacitados'] = $result->total_deshacitados;
-                }
-            }
-        
-            // Ordenar los datpublic function index()
-    {
-        try {
-            $reports = Report::with('user')->get();
+{
+    $currentYear = date('Y');
+    $currentMonth = date('m');
+    
+    // Generate the last 12 months, including the current month
+    $months = [];
+    for ($i = 0; $i < 12; $i++) {
+        $date = \Carbon\Carbon::create($currentYear, $currentMonth)->subMonths($i);
+        $months[] = [
+            'year' => $date->year,
+            'month' => $date->month,
+            'month_name' => $date->locale('es')->format('F') // Get the month name in Spanish
+        ];
+    }
 
-    
-            // Transforma los informes
-            $transformedReports = $reports->map(function ($report) {
-                return [
-                    'id' => $report->id,
-                    'title' => $report->title,
-                    'goal' => $report->goal->goal ?? 'N/A',
-                    'comission_number' => $report->comission_number,
-                    'date' => $report->date,
-                    'user' => $report->user ? $report->user->user : 'Unknown User',
-                    'total_people' => $report->total_people,
-                    'total_women' => $report->total_women,
-                    'total_men' => $report->total_men,
-                    'total_ethnicity' => $report->total_ethnicity,
-                    'total_deshabilities' => $report->total_deshabilities,
-                    'city' => $report->city,
-                    'region' => $report->region,
-                    'inform' => $report->inform,
-                    'comment' => $report->comment,
-                ];
-            });
-    
-            return response()->json($transformedReports);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching the reports: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+    // Convert months into a suitable format for the query
+    $monthNumbers = array_map(function($month) {
+        return sprintf('%04d-%02d', $month['year'], $month['month']);
+    }, $months);
+
+    // SQL query to get the data
+    $results = DB::table('reports')
+        ->select(
+            DB::raw('YEAR(TRY_CONVERT(datetime, date, 103)) as year'),
+            DB::raw('MONTH(TRY_CONVERT(datetime, date, 103)) as month'),
+            DB::raw('SUM(total_people) as total_personas'),
+            DB::raw('SUM(total_women) as total_mujeres'),
+            DB::raw('SUM(total_men) as total_hombres'),
+            DB::raw('SUM(total_ethnicity) as total_etnia'),
+            DB::raw('SUM(total_deshabilities) as total_deshacitados')
+        )
+        ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 103), \'yyyy-MM\')'), $monthNumbers)
+        ->groupBy(
+            DB::raw('YEAR(TRY_CONVERT(datetime, date, 103))'),
+            DB::raw('MONTH(TRY_CONVERT(datetime, date, 103))')
+        )
+        ->get();
+
+    // Create an array with all months to ensure all months are represented
+    $data = [];
+    foreach ($months as $month) {
+        $key = $month['year'] . '-' . str_pad($month['month'], 2, '0', STR_PAD_LEFT);
+        $data[$key] = [
+            'month_name' => $month['month_name'],
+            'year' => $month['year'],
+            'total_personas' => 0,
+            'total_mujeres' => 0,
+            'total_hombres' => 0,
+            'total_etnia' => 0,
+            'total_discapacitados' => 0
+        ];
+    }
+
+    // Populate the data array with the results from the query
+    foreach ($results as $result) {
+        $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);
+        if (isset($data[$key])) {
+            $data[$key]['total_personas'] = $result->total_personas;
+            $data[$key]['total_mujeres'] = $result->total_mujeres;
+            $data[$key]['total_hombres'] = $result->total_hombres;
+            $data[$key]['total_etnia'] = $result->total_etnia;
+            $data[$key]['total_discapacitados'] = $result->total_deshacitados;
         }
     }
-            uasort($data, function($a, $b) {
-                if ($a['year'] === $b['year']) {
-                    return $b['month'] - $a['month'];
-                }
-                return $b['year'] - $a['year'];
-            });
-        
-            // Convertir el formato de fecha antes de devolver la respuesta
-            $formattedData = array_map(function($entry) {
-                return $entry;
-            }, $data);
-        
-            return response()->json(array_values($formattedData));
+
+    // Sort the data by year and month from the most recent to the oldest
+    uasort($data, function($a, $b) {
+        if (!isset($a['year'], $a['month'], $b['year'], $b['month'])) {
+            return 0;
         }
-        
+        $dateA = $a['year'] . '-' . str_pad($a['month'], 2, '0', STR_PAD_LEFT);
+        $dateB = $b['year'] . '-' . str_pad($b['month'], 2, '0', STR_PAD_LEFT);
+        return strcmp($dateB, $dateA); // Sort in descending order
+    });
+
+    // Convert the data to an array and return the response
+    $formattedData = array_values($data);
+
+    return response()->json($formattedData);
+}
+
         
         
         
@@ -396,15 +376,14 @@ public function update(Request $request, $id)
             }
         }
         
-        
         public function getTotalComisionesPorMunicipio()
         {
             try {
                 $totalComisionesPorCiudad = DB::table('cities')
-                    ->leftJoin('reports', 'cities.id', '=', 'reports.city')
+                    ->leftJoin('reports', 'cities.city', '=', 'reports.city')
                     ->select('cities.city', DB::raw('COUNT(DISTINCT reports.comission_number) as total_comisiones'))
                     ->groupBy('cities.city')
-                    ->orderBy('cities.city') // Ordenar por city
+                    ->orderBy('cities.city')
                     ->get();
         
                 return response()->json(['total_comisiones_por_ciudad' => $totalComisionesPorCiudad]);
@@ -418,10 +397,10 @@ public function update(Request $request, $id)
         {
             try {
                 $totalComisionesPorRegion = DB::table('cities')
-                    ->leftJoin('reports', 'cities.id', '=', 'reports.region')
+                    ->leftJoin('reports', 'cities.region', '=', 'reports.region')
                     ->select('cities.region', DB::raw('COUNT(DISTINCT reports.comission_number) as total_comisiones'))
                     ->groupBy('cities.region')
-                    ->orderBy('cities.region') // Ordenar por city
+                    ->orderBy('cities.region')
                     ->get();
         
                 return response()->json(['total_comisiones_por_region' => $totalComisionesPorRegion]);
@@ -431,6 +410,7 @@ public function update(Request $request, $id)
             }
         }
         
+
 
         public function search(Request $request)
         {
