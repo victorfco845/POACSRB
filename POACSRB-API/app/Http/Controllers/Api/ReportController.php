@@ -249,21 +249,33 @@ public function update(Request $request, $id)
             }
         }
         
-        
         public function getTotalPersonasPorRegion()
         {
             try {
+                // Subconsulta para agrupar y sumar los valores en la tabla 'reports'
+                $subQuery = DB::table('reports')
+                    ->select(
+                        'region',
+                        DB::raw('SUM(CAST(total_people AS BIGINT)) as total_personas'),
+                        DB::raw('SUM(CAST(total_women AS BIGINT)) as total_mujeres'),
+                        DB::raw('SUM(CAST(total_men AS BIGINT)) as total_hombres'),
+                        DB::raw('SUM(CAST(total_ethnicity AS BIGINT)) as total_etnia'),
+                        DB::raw('SUM(CAST(total_deshabilities AS BIGINT)) as total_discapacitados')
+                    )
+                    ->groupBy('region');
+        
+                // Consulta principal uniendo 'cities' con la subconsulta
                 $results = DB::table('cities')
-                    ->leftJoin('reports', 'cities.region', '=', 'reports.region')
+                    ->leftJoinSub($subQuery, 'reports', 'cities.region', '=', 'reports.region')
                     ->select(
                         'cities.region',
-                        DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas'),
-                        DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres'),
-                        DB::raw('COALESCE(SUM(CAST(reports.total_men AS BIGINT)), 0) as total_hombres'),
-                        DB::raw('COALESCE(SUM(CAST(reports.total_ethnicity AS BIGINT)), 0) as total_etnia'),
-                        DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados')
+                        DB::raw('COALESCE(reports.total_personas, 0) as total_personas'),
+                        DB::raw('COALESCE(reports.total_mujeres, 0) as total_mujeres'),
+                        DB::raw('COALESCE(reports.total_hombres, 0) as total_hombres'),
+                        DB::raw('COALESCE(reports.total_etnia, 0) as total_etnia'),
+                        DB::raw('COALESCE(reports.total_discapacitados, 0) as total_discapacitados')
                     )
-                    ->groupBy('cities.region')
+                    ->groupBy('cities.region', 'reports.total_personas', 'reports.total_mujeres', 'reports.total_hombres', 'reports.total_etnia', 'reports.total_discapacitados')
                     ->orderBy('total_personas', 'desc')
                     ->get();
         
@@ -273,6 +285,9 @@ public function update(Request $request, $id)
                 return response()->json(['error' => 'An error occurred while fetching total personas por region.'], 500);
             }
         }
+        
+        
+        
         
         public function getTotalPersonasPorMes()
 {
