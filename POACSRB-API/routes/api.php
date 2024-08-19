@@ -7,8 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\EvidenceController;
-
-
+use App\Http\Middleware\Api\EnsureTokenIsValid;
 
 
 /*
@@ -21,7 +20,6 @@ use App\Http\Controllers\Api\EvidenceController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -62,7 +60,5 @@ Route::get('/evidences', [EvidenceController::class, 'index']);
 Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 
 Route::get('/evidences/{id}', [EvidenceController::class, 'show']);
-Route::get('/evidenceid/{id}', [EvidenceController::class, 'searchforid']);
-    
 
    

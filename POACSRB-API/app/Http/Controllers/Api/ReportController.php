@@ -123,32 +123,10 @@ public function create(Request $request)
     // Guarda el reporte en la base de datos
     $report->save();
 
-    // Encuentra el reporte recién creado y carga la información relacionada
-    $createdReport = Report::with('user')->find($report->id);
-
-    // Transforma la información del reporte
-    $transformedReport = [
-        'id' => $createdReport->id,
-        'title' => $createdReport->title,
-        'goal' => $createdReport->goal->goal ?? 'N/A',
-        'comission_number' => $createdReport->comission_number,
-        'date' => $createdReport->date,
-        'user' => $createdReport->user ? $createdReport->user->user : 'Unknown User',
-        'total_people' => $createdReport->total_people,
-        'total_women' => $createdReport->total_women,
-        'total_men' => $createdReport->total_men,
-        'total_ethnicity' => $createdReport->total_ethnicity,
-        'total_deshabilities' => $createdReport->total_deshabilities,
-        'city' => $createdReport->city,
-        'region' => $createdReport->region,
-        'inform' => $createdReport->inform,
-        'comment' => $createdReport->comment,
-    ];
-
-    // Devuelve la información del reporte creado en la respuesta
+    // Devuelve solo el ID del reporte recién creado
     return response()->json([
         'message' => 'Reporte creado exitosamente.',
-        'report' => $transformedReport
+        'id' => $report->id
     ], 201);
 }
 
@@ -216,12 +194,12 @@ public function update(Request $request, $id)
                     ->groupBy('goals.id', 'goals.goal')
                     ->orderBy('goals.id')
                     ->get();
-                
-                return response()->json(['total_personas_por_meta' => $totalPersonasPorMeta]);
             } catch (\Exception $e) {
                 \Log::error('Error fetching total personas por meta: ' . $e->getMessage());
                 return response()->json(['error' => 'An error occurred while fetching total personas por meta.'], 500);
             }
+            
+            return response()->json(['total_personas_por_meta' => $totalPersonasPorMeta]);
         }
         
         
@@ -485,6 +463,12 @@ public function update(Request $request, $id)
             });
         
             return response()->json($transformedReports);
+        }
+
+        public function getNextReportId()
+        {
+            $maxId = Report::max('id');
+                return response()->json($maxId + 1);
         }
         
         

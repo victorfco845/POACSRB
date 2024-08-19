@@ -14,18 +14,30 @@ class EvidenceController extends Controller
     public function index()
     {
         $evidences = Evidence::all();
+    
+        foreach ($evidences as $evidence) {
+            $filePath = storage_path('app/public/' . $evidence->evidence);
+    
+            $evidence->evidence_url = 'file:///' . str_replace('\\', '/', $filePath);
+        }
+    
         return response()->json($evidences);
     }
+    
 
     public function show($id)
     {
         $evidence = Evidence::findOrFail($id);
     
-        // Generar la URL completa para la imagen almacenada
-        $fileUrl = asset('storage/' . $evidence->evidence);
+        // Obtener la ruta completa del archivo en el sistema de archivos
+        $filePath = storage_path('app/public/' . $evidence->evidence);
+    
+        // Convertir la ruta a una URL de archivo
+        $fileUrl = 'file:///' . str_replace('\\', '/', $filePath);
     
         return response()->json(['url' => $fileUrl]);
     }
+    
 
     public function update(Request $request, $id)
     {
@@ -50,25 +62,20 @@ class EvidenceController extends Controller
 
     public function insert(Request $request)
     {
-        // Validar la solicitud
         $request->validate([
-            'evidence' => 'required|image', // Validar que sea una imagen
-            'report_id' => 'required|exists:reports,id', // Validar que el report_id exista en la tabla reports
+            'evidence' => 'required|image',
+            'report_id' => 'required|exists:reports,id',
         ]);
     
-        // Obtener el archivo de la solicitud
         $file = $request->file('evidence');
     
-        // Almacenar el archivo y obtener la ruta
-        $path = $file->store('evidence', 'public'); // Guardar en storage/app/public/evidence
+        $path = $file->store('evidence', 'public');
     
-        // Crear un nuevo registro en la base de datos
         Evidence::create([
-            'evidence' => $path, // Guardar la ruta del archivo
-            'report_id' => $request->input('report_id'), // Asociar con el ID del reporte
+            'evidence' => $path,
+            'report_id' => $request->input('report_id'),
         ]);
     
-        // Devolver una respuesta de éxito con la ruta del archivo
         return response()->json(['path' => asset('storage/' . $path)]);
     }
     
