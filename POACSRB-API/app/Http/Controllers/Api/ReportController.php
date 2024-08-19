@@ -288,89 +288,87 @@ public function update(Request $request, $id)
         
         
         
-        
         public function getTotalPersonasPorMes()
-{
-    $currentYear = date('Y');
-    $currentMonth = date('m');
-    
-    // Generate the last 12 months, including the current month
-    $months = [];
-    for ($i = 0; $i < 12; $i++) {
-        $date = \Carbon\Carbon::create($currentYear, $currentMonth)->subMonths($i);
-        $months[] = [
-            'year' => $date->year,
-            'month' => $date->month,
-            'month_name' => $date->locale('es')->format('F') // Get the month name in Spanish
-        ];
-    }
-
-    // Convert months into a suitable format for the query
-    $monthNumbers = array_map(function($month) {
-        return sprintf('%04d-%02d', $month['year'], $month['month']);
-    }, $months);
-
-    // SQL query to get the data
-    $results = DB::table('reports')
-        ->select(
-            DB::raw('YEAR(TRY_CONVERT(datetime, date, 103)) as year'),
-            DB::raw('MONTH(TRY_CONVERT(datetime, date, 103)) as month'),
-            DB::raw('SUM(total_people) as total_personas'),
-            DB::raw('SUM(total_women) as total_mujeres'),
-            DB::raw('SUM(total_men) as total_hombres'),
-            DB::raw('SUM(total_ethnicity) as total_etnia'),
-            DB::raw('SUM(total_deshabilities) as total_deshacitados')
-        )
-        ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 103), \'yyyy-MM\')'), $monthNumbers)
-        ->groupBy(
-            DB::raw('YEAR(TRY_CONVERT(datetime, date, 103))'),
-            DB::raw('MONTH(TRY_CONVERT(datetime, date, 103))')
-        )
-        ->get();
-
-    // Create an array with all months to ensure all months are represented
-    $data = [];
-    foreach ($months as $month) {
-        $key = $month['year'] . '-' . str_pad($month['month'], 2, '0', STR_PAD_LEFT);
-        $data[$key] = [
-            'month_name' => $month['month_name'],
-            'year' => $month['year'],
-            'total_personas' => 0,
-            'total_mujeres' => 0,
-            'total_hombres' => 0,
-            'total_etnia' => 0,
-            'total_discapacitados' => 0
-        ];
-    }
-
-    // Populate the data array with the results from the query
-    foreach ($results as $result) {
-        $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);
-        if (isset($data[$key])) {
-            $data[$key]['total_personas'] = $result->total_personas;
-            $data[$key]['total_mujeres'] = $result->total_mujeres;
-            $data[$key]['total_hombres'] = $result->total_hombres;
-            $data[$key]['total_etnia'] = $result->total_etnia;
-            $data[$key]['total_discapacitados'] = $result->total_deshacitados;
+        {
+            $currentYear = date('Y');
+            $currentMonth = date('m');
+            
+            // Generar los últimos 12 meses, incluyendo el mes actual
+            $months = [];
+            for ($i = 0; $i < 12; $i++) {
+                $date = \Carbon\Carbon::create($currentYear, $currentMonth)->subMonths($i);
+                $months[] = [
+                    'year' => $date->year,
+                    'month' => $date->month,
+                    'month_name' => $date->locale('es')->format('F') // Obtener el nombre del mes en español
+                ];
+            }
+        
+            // Convertir los meses en un formato adecuado para la consulta
+            $monthNumbers = array_map(function($month) {
+                return sprintf('%04d-%02d', $month['year'], $month['month']);
+            }, $months);
+        
+            // Consulta SQL para obtener los datos
+            $results = DB::table('reports')
+                ->select(
+                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103)) as year'),
+                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103)) as month'),
+                    DB::raw('SUM(total_people) as total_personas'),
+                    DB::raw('SUM(total_women) as total_mujeres'),
+                    DB::raw('SUM(total_men) as total_hombres'),
+                    DB::raw('SUM(total_ethnicity) as total_etnia'),
+                    DB::raw('SUM(total_deshabilities) as total_discapacitados')
+                )
+                ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 103), \'yyyy-MM\')'), $monthNumbers)
+                ->groupBy(
+                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103))'),
+                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103))')
+                )
+                ->get();
+        
+            // Crear un array con todos los meses para asegurar que todos los meses estén representados
+            $data = [];
+            foreach ($months as $month) {
+                $key = $month['year'] . '-' . str_pad($month['month'], 2, '0', STR_PAD_LEFT);
+                $data[$key] = [
+                    'month_name' => $month['month_name'],
+                    'year' => $month['year'],
+                    'total_personas' => "0",
+                    'total_mujeres' => "0",
+                    'total_hombres' => "0",
+                    'total_etnia' => "0",
+                    'total_discapacitados' => "0"
+                ];
+            }
+        
+            // Poblar el array data con los resultados de la consulta
+            foreach ($results as $result) {
+                $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);
+                if (isset($data[$key])) {
+                    $data[$key]['total_personas'] = (string) $result->total_personas;
+                    $data[$key]['total_mujeres'] = (string) $result->total_mujeres;
+                    $data[$key]['total_hombres'] = (string) $result->total_hombres;
+                    $data[$key]['total_etnia'] = (string) $result->total_etnia;
+                    $data[$key]['total_discapacitados'] = (string) $result->total_discapacitados;
+                }
+            }
+        
+            // Ordenar los datos por año y mes del más reciente al más antiguo
+            uasort($data, function($a, $b) {
+                if (!isset($a['year'], $a['month'], $b['year'], $b['month'])) {
+                    return 0;
+                }
+                $dateA = $a['year'] . '-' . str_pad($a['month'], 2, '0', STR_PAD_LEFT);
+                $dateB = $b['year'] . '-' . str_pad($b['month'], 2, '0', STR_PAD_LEFT);
+                return strcmp($dateB, $dateA); // Orden descendente
+            });
+        
+            // Convertir los datos en un array y devolver la respuesta
+            $formattedData = array_values($data);
+        
+            return response()->json($formattedData);
         }
-    }
-
-    // Sort the data by year and month from the most recent to the oldest
-    uasort($data, function($a, $b) {
-        if (!isset($a['year'], $a['month'], $b['year'], $b['month'])) {
-            return 0;
-        }
-        $dateA = $a['year'] . '-' . str_pad($a['month'], 2, '0', STR_PAD_LEFT);
-        $dateB = $b['year'] . '-' . str_pad($b['month'], 2, '0', STR_PAD_LEFT);
-        return strcmp($dateB, $dateA); // Sort in descending order
-    });
-
-    // Convert the data to an array and return the response
-    $formattedData = array_values($data);
-
-    return response()->json($formattedData);
-}
-
         
         
         
