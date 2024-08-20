@@ -180,10 +180,11 @@ public function update(Request $request, $id)
         public function getTotalPersonasPorMeta()
         {
             try {
-                // Consultar el total de personas, mujeres, hombres, etnia y discapacitados por meta
+                // Consulta para obtener el total de personas, mujeres, hombres, etnia y discapacitados por meta
                 $totalPersonasPorMeta = DB::table('goals')
                     ->leftJoin('reports', 'goals.id', '=', 'reports.goal_id')
                     ->select(
+                        'goals.id',
                         'goals.goal',
                         DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas'),
                         DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres'),
@@ -192,21 +193,73 @@ public function update(Request $request, $id)
                         DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados')
                     )
                     ->groupBy('goals.id', 'goals.goal')
+                    ->havingRaw('SUM(reports.total_people) > 0') // Filtrar metas sin registros
                     ->orderBy('goals.id')
                     ->get();
+        
+                // Consulta para obtener el total de personas por mes para cada meta
+                $totalPersonasPorMetaPorMes = DB::table('goals')
+                    ->leftJoin('reports', 'goals.id', '=', 'reports.goal_id')
+                    ->select(
+                        'goals.id',
+                        'goals.goal',
+                        DB::raw("FORMAT(CONVERT(DATE, reports.date, 105), 'yyyy-MM') as month"),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_men AS BIGINT)), 0) as total_hombres_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_ethnicity AS BIGINT)), 0) as total_etnia_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados_mes')
+                    )
+                    ->groupBy('goals.id', 'goals.goal', DB::raw("FORMAT(CONVERT(DATE, reports.date, 105), 'yyyy-MM')"))
+                    ->orderBy('goals.id')
+                    ->orderBy(DB::raw("FORMAT(CONVERT(DATE, reports.date, 105), 'yyyy-MM')"), 'desc') // Ordenar de más reciente a más antiguo
+                    ->get();
+        
+                // Formatear los resultados combinados
+                $result = [];
+        
+                foreach ($totalPersonasPorMeta as $meta) {
+                    // Añadir los totales generales
+                    $metaData = [
+                        'goal' => $meta->goal,
+                        'total_personas' => $meta->total_personas,
+                        'total_mujeres' => $meta->total_mujeres,
+                        'total_hombres' => $meta->total_hombres,
+                        'total_etnia' => $meta->total_etnia,
+                        'total_discapacitados' => $meta->total_discapacitados,
+                    ];
+        
+                    // Filtrar los resultados por meta y añadir los totales por mes
+                    $meses = $totalPersonasPorMetaPorMes->where('id', $meta->id);
+                    foreach ($meses as $mes) {
+                        $metaData['meses'][] = [
+                            'month' => $mes->month,
+                            'total_personas_mes' => $mes->total_personas_mes,
+                            'total_mujeres_mes' => $mes->total_mujeres_mes,
+                            'total_hombres_mes' => $mes->total_hombres_mes,
+                            'total_etnia_mes' => $mes->total_etnia_mes,
+                            'total_discapacitados_mes' => $mes->total_discapacitados_mes,
+                        ];
+                    }
+        
+                    // Agregar la meta formateada al resultado
+                    $result[] = $metaData;
+                }
+        
             } catch (\Exception $e) {
                 \Log::error('Error fetching total personas por meta: ' . $e->getMessage());
-                return response()->json(['error' => 'An error occurred while fetching total personas por meta.'], 500);
+                return response()->json(['error' => $e->getMessage()], 500);
             }
-            
-            return response()->json(['total_personas_por_meta' => $totalPersonasPorMeta]);
+        
+            return response()->json(['data' => $result]);
         }
         
         
         public function getTotalPersonasPorMunicipio()
         {
             try {
-                $results = DB::table('cities')
+                // Consulta para obtener el total de personas, mujeres, hombres, etnia y discapacitados por municipio
+                $totalPersonasPorMunicipio = DB::table('cities')
                     ->leftJoin('reports', 'cities.city', '=', 'reports.city')
                     ->select(
                         'cities.city',
@@ -217,15 +270,66 @@ public function update(Request $request, $id)
                         DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados')
                     )
                     ->groupBy('cities.city')
+                    ->havingRaw('SUM(reports.total_people) > 0') // Filtrar municipios sin registros
                     ->orderBy('cities.city') // Ordena alfabéticamente por nombre de la ciudad
                     ->get();
         
-                return response()->json($results);
+                // Consulta para obtener el total de personas por mes para cada municipio
+                $totalPersonasPorMunicipioPorMes = DB::table('cities')
+                    ->leftJoin('reports', 'cities.city', '=', 'reports.city')
+                    ->select(
+                        'cities.city',
+                        DB::raw("FORMAT(CONVERT(DATE, reports.date, 105), 'yyyy-MM') as month"),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_people AS BIGINT)), 0) as total_personas_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_women AS BIGINT)), 0) as total_mujeres_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_men AS BIGINT)), 0) as total_hombres_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_ethnicity AS BIGINT)), 0) as total_etnia_mes'),
+                        DB::raw('COALESCE(SUM(CAST(reports.total_deshabilities AS BIGINT)), 0) as total_discapacitados_mes')
+                    )
+                    ->groupBy('cities.city', DB::raw("FORMAT(CONVERT(DATE, reports.date, 105), 'yyyy-MM')"))
+                    ->orderBy('cities.city')
+                    ->orderBy(DB::raw("FORMAT(CONVERT(DATE, reports.date, 105), 'yyyy-MM')"), 'desc') // Ordenar de más reciente a más antiguo
+                    ->get();
+        
+                // Formatear los resultados combinados
+                $result = [];
+        
+                foreach ($totalPersonasPorMunicipio as $municipio) {
+                    // Añadir los totales generales
+                    $municipioData = [
+                        'city' => $municipio->city,
+                        'total_personas' => $municipio->total_personas,
+                        'total_mujeres' => $municipio->total_mujeres,
+                        'total_hombres' => $municipio->total_hombres,
+                        'total_etnia' => $municipio->total_etnia,
+                        'total_discapacitados' => $municipio->total_discapacitados,
+                    ];
+        
+                    // Filtrar los resultados por municipio y añadir los totales por mes
+                    $meses = $totalPersonasPorMunicipioPorMes->where('city', $municipio->city);
+                    foreach ($meses as $mes) {
+                        $municipioData['meses'][] = [
+                            'month' => $mes->month,
+                            'total_personas_mes' => $mes->total_personas_mes,
+                            'total_mujeres_mes' => $mes->total_mujeres_mes,
+                            'total_hombres_mes' => $mes->total_hombres_mes,
+                            'total_etnia_mes' => $mes->total_etnia_mes,
+                            'total_discapacitados_mes' => $mes->total_discapacitados_mes,
+                        ];
+                    }
+        
+                    // Agregar el municipio formateado al resultado
+                    $result[] = $municipioData;
+                }
+        
             } catch (\Exception $e) {
                 \Log::error('Error fetching total personas por municipio: ' . $e->getMessage());
-                return response()->json(['error' => 'An error occurred while fetching total personas por municipio.'], 500);
+                return response()->json(['error' => $e->getMessage()], 500);
             }
+        
+            return response()->json(['data' => $result]);
         }
+        
         
         public function getTotalPersonasPorRegion()
         {

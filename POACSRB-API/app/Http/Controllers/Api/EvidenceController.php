@@ -111,11 +111,17 @@ public function searchforid($reportId)
 
     // Generar URLs completas para cada evidencia
     $evidences->transform(function ($evidence) {
-        $evidence->evidence = asset('storage/' . $evidence->evidence);
+        // Obtener la ruta completa del archivo en el sistema de archivos
+        $filePath = storage_path('app/public/' . $evidence->evidence);
+        
+        // Convertir la ruta a una URL de archivo
+        $evidence->evidence = 'file:///' . str_replace('\\', '/', $filePath);
+        
         return $evidence;
     });
 
     return response()->json($evidences);
 }
+
 
 }
