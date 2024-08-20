@@ -9,3 +9,10 @@ php artisan db:seed
 php artisan db:seed --class=UserSeeder
 php artisan db:seed --class=ReportSeeder
 php artisan db:seed --class=EvidenceSeeder
+
+
+En caso de que no guarde las imagenes en la carpeta storage/app/public/EvidenceSeeder
+poner los siguientes comandos desde el powershell con administrador en la ruta \POACSRB\POACSRB-API
+
+Remove-Item -Path public/storage
+New-Item -ItemType SymbolicLink -Path "public/storage" -Target "storage/app/public"

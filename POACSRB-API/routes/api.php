@@ -20,7 +20,6 @@ use App\Http\Middleware\Api\EnsureTokenIsValid;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -49,6 +48,8 @@ Route::get('/total-personas-por-mes', [ReportController::class, 'getTotalPersona
 Route::get('/total-comisiones-por-meta', [ReportController::class, 'getTotalComisionesPorMeta']);
 Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
 Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
+Route::get('/total-comisiones-por-mes', [ReportController::class, 'getTotalComisionesPorMes']);
+
 
 
 Route::get('/cities', [CityController::class, 'index']);
@@ -61,5 +62,6 @@ Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 
 Route::get('/evidences/{id}', [EvidenceController::class, 'show']);
 Route::get('/evidencesid/{id}', [EvidenceController::class, 'searchforid']);
+
 
    

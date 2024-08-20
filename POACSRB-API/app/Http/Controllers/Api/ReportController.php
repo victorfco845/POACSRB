@@ -449,91 +449,57 @@ public function getTotalPersonasPorRegion()
 
     return response()->json(['data' => $result]);
 }
+public function getTotalPersonasPorMes()
+{
+    try {
+        // Consulta para obtener el total de personas por mes
+        $totalPersonasPorMes = DB::table('reports')
+            ->select(
+                DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM') as month"),
+                DB::raw('COALESCE(SUM(CAST(total_people AS BIGINT)), 0) as total_personas'),
+                DB::raw('COALESCE(SUM(CAST(total_women AS BIGINT)), 0) as total_mujeres'),
+                DB::raw('COALESCE(SUM(CAST(total_men AS BIGINT)), 0) as total_hombres'),
+                DB::raw('COALESCE(SUM(CAST(total_ethnicity AS BIGINT)), 0) as total_etnia'),
+                DB::raw('COALESCE(SUM(CAST(total_deshabilities AS BIGINT)), 0) as total_discapacitados')
+            )
+            ->groupBy(DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM')"))
+            ->orderBy(DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM')"), 'desc') // Ordenar de más reciente a más antiguo
+            ->get();
 
-        
-        public function getTotalPersonasPorMes()
-        {
-            $currentYear = date('Y');
-            $currentMonth = date('m');
-            
-            // Generar los últimos 12 meses, incluyendo el mes actual
-            $months = [];
-            for ($i = 0; $i < 12; $i++) {
-                $date = \Carbon\Carbon::create($currentYear, $currentMonth)->subMonths($i);
-                $months[] = [
-                    'year' => $date->year,
-                    'month' => $date->month,
-                    'month_name' => $date->locale('es')->format('F') // Obtener el nombre del mes en español
-                ];
-            }
-        
-            // Convertir los meses en un formato adecuado para la consulta
-            $monthNumbers = array_map(function($month) {
-                return sprintf('%04d-%02d', $month['year'], $month['month']);
-            }, $months);
-        
-            // Consulta SQL para obtener los datos
-            $results = DB::table('reports')
-                ->select(
-                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103)) as year'),
-                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103)) as month'),
-                    DB::raw('SUM(total_people) as total_personas'),
-                    DB::raw('SUM(total_women) as total_mujeres'),
-                    DB::raw('SUM(total_men) as total_hombres'),
-                    DB::raw('SUM(total_ethnicity) as total_etnia'),
-                    DB::raw('SUM(total_deshabilities) as total_discapacitados')
-                )
-                ->whereIn(DB::raw('FORMAT(TRY_CONVERT(datetime, date, 103), \'yyyy-MM\')'), $monthNumbers)
-                ->groupBy(
-                    DB::raw('YEAR(TRY_CONVERT(datetime, date, 103))'),
-                    DB::raw('MONTH(TRY_CONVERT(datetime, date, 103))')
-                )
-                ->get();
-        
-            // Crear un array con todos los meses para asegurar que todos los meses estén representados
-            $data = [];
-            foreach ($months as $month) {
-                $key = $month['year'] . '-' . str_pad($month['month'], 2, '0', STR_PAD_LEFT);
-                $data[$key] = [
-                    'month_name' => $month['month_name'],
-                    'year' => $month['year'],
-                    'total_personas' => "0",
-                    'total_mujeres' => "0",
-                    'total_hombres' => "0",
-                    'total_etnia' => "0",
-                    'total_discapacitados' => "0"
-                ];
-            }
-        
-            // Poblar el array data con los resultados de la consulta
-            foreach ($results as $result) {
-                $key = $result->year . '-' . str_pad($result->month, 2, '0', STR_PAD_LEFT);
-                if (isset($data[$key])) {
-                    $data[$key]['total_personas'] = (string) $result->total_personas;
-                    $data[$key]['total_mujeres'] = (string) $result->total_mujeres;
-                    $data[$key]['total_hombres'] = (string) $result->total_hombres;
-                    $data[$key]['total_etnia'] = (string) $result->total_etnia;
-                    $data[$key]['total_discapacitados'] = (string) $result->total_discapacitados;
-                }
-            }
-        
-            // Ordenar los datos por año y mes del más reciente al más antiguo
-            uasort($data, function($a, $b) {
-                if (!isset($a['year'], $a['month'], $b['year'], $b['month'])) {
-                    return 0;
-                }
-                $dateA = $a['year'] . '-' . str_pad($a['month'], 2, '0', STR_PAD_LEFT);
-                $dateB = $b['year'] . '-' . str_pad($b['month'], 2, '0', STR_PAD_LEFT);
-                return strcmp($dateB, $dateA); // Orden descendente
-            });
-        
-            // Convertir los datos en un array y devolver la respuesta
-            $formattedData = array_values($data);
-        
-            return response()->json($formattedData);
+        // Mapeo de números de meses a nombres en español
+        $mesesEspañol = [
+            '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril', '05' => 'Mayo', '06' => 'Junio',
+            '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+        ];
+
+        // Formatear los resultados combinados
+        $result = [];
+
+        foreach ($totalPersonasPorMes as $mes) {
+            $fecha = explode('-', $mes->month);
+            $year = $fecha[0];
+            $mesTexto = $mesesEspañol[$fecha[1]];
+
+            $result[] = [
+                'mes' => $mesTexto,
+                'año' => $year,
+                'total_personas' => $mes->total_personas,
+                'total_mujeres' => $mes->total_mujeres,
+                'total_hombres' => $mes->total_hombres,
+                'total_etnia' => $mes->total_etnia,
+                'total_discapacitados' => $mes->total_discapacitados,
+            ];
         }
-        
-        
+
+    } catch (\Exception $e) {
+        \Log::error('Error fetching total personas por mes: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+
+    return response()->json(['data' => $result]);
+}
+
+
         
         public function getTotalComisionesPorMeta()
         {
@@ -772,6 +738,49 @@ public function getTotalPersonasPorRegion()
         
             return response()->json(['total_comisiones_por_region' => $result]);
         }
+
+        public function getTotalComisionesPorMes()
+{
+    try {
+        // Consulta para obtener el total de comisiones por mes
+        $totalComisionesPorMes = DB::table('reports')
+            ->select(
+                DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM') as month"),
+                DB::raw('COUNT(id) as total_comisiones')
+            )
+            ->groupBy(DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM')"))
+            ->orderBy(DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM')"), 'desc') // Ordenar de más reciente a más antiguo
+            ->get();
+
+        // Mapeo de números de meses a nombres en español
+        $mesesEspañol = [
+            '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril', '05' => 'Mayo', '06' => 'Junio',
+            '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+        ];
+
+        // Formatear los resultados combinados
+        $result = [];
+
+        foreach ($totalComisionesPorMes as $mes) {
+            $fecha = explode('-', $mes->month);
+            $year = $fecha[0];
+            $mesTexto = $mesesEspañol[$fecha[1]];
+
+            $result[] = [
+                'mes' => $mesTexto,
+                'año' => $year,
+                'total_comisiones' => $mes->total_comisiones
+            ];
+        }
+
+    } catch (\Exception $e) {
+        \Log::error('Error fetching total comisiones por mes: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+
+    return response()->json(['data' => $result]);
+}
+
         
 
         public function search(Request $request)

@@ -16,7 +16,6 @@ class EvidenceController extends Controller
         $evidences = Evidence::all();
         
         foreach ($evidences as $evidence) {
-            // Generar la URL pública para cada archivo
             $evidence->evidence_url = asset('storage/' . $evidence->evidence);
         }
         
@@ -29,7 +28,6 @@ class EvidenceController extends Controller
     {
         $evidence = Evidence::findOrFail($id);
         
-        // Generar la URL pública para el archivo
         $fileUrl = asset('storage/' . $evidence->evidence);
         
         return response()->json(['url' => $fileUrl]);
@@ -105,10 +103,8 @@ public function searchforid($reportId)
     }
 
     $evidences->transform(function ($evidence) {
-        $fileUrl = url('storage/' . $evidence->evidence); // Usa url() en lugar de asset()
+        $fileUrl = url('storage/' . $evidence->evidence);
 
-        // Verifica que el archivo exista en la URL generada
-        // Puedes usar un log para imprimir la URL y verificarla manualmente
         \Log::info("Generated file URL: " . $fileUrl);
 
         $evidence->evidence = $fileUrl;
