@@ -5,8 +5,6 @@ php artisan migrate
 php artisan passport:install
 php artisan passport:client --personal
 php artisan db:seed
-php artisan storage:link
-
 
 php artisan db:seed --class=UserSeeder
 php artisan db:seed --class=ReportSeeder

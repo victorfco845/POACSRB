@@ -14,31 +14,27 @@ class EvidenceController extends Controller
     public function index()
     {
         $evidences = Evidence::all();
-    
+        
         foreach ($evidences as $evidence) {
-            $filePath = storage_path('app/public/' . $evidence->evidence);
-    
-            $evidence->evidence_url = 'file:///' . str_replace('\\', '/', $filePath);
+            // Generar la URL pública para cada archivo
+            $evidence->evidence_url = asset('storage/' . $evidence->evidence);
         }
-    
+        
         return response()->json($evidences);
     }
+    
     
 
     public function show($id)
     {
         $evidence = Evidence::findOrFail($id);
-    
-        // Obtener la ruta completa del archivo en el sistema de archivos
-        $filePath = storage_path('app/public/' . $evidence->evidence);
-    
-        // Convertir la ruta a una URL de archivo
-        $fileUrl = 'file:///' . str_replace('\\', '/', $filePath);
-    
+        
+        // Generar la URL pública para el archivo
+        $fileUrl = asset('storage/' . $evidence->evidence);
+        
         return response()->json(['url' => $fileUrl]);
     }
     
-
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -102,26 +98,28 @@ public function delete($id)
 
 public function searchforid($reportId)
 {
-    // Buscar todas las evidencias por el report_id
     $evidences = Evidence::where('report_id', $reportId)->get();
 
     if ($evidences->isEmpty()) {
         return response()->json(['message' => 'No evidence found'], 404);
     }
 
-    // Generar URLs completas para cada evidencia
     $evidences->transform(function ($evidence) {
-        // Obtener la ruta completa del archivo en el sistema de archivos
-        $filePath = storage_path('app/public/' . $evidence->evidence);
-        
-        // Convertir la ruta a una URL de archivo
-        $evidence->evidence = 'file:///' . str_replace('\\', '/', $filePath);
+        $fileUrl = url('storage/' . $evidence->evidence); // Usa url() en lugar de asset()
+
+        // Verifica que el archivo exista en la URL generada
+        // Puedes usar un log para imprimir la URL y verificarla manualmente
+        \Log::info("Generated file URL: " . $fileUrl);
+
+        $evidence->evidence = $fileUrl;
         
         return $evidence;
     });
 
     return response()->json($evidences);
 }
+
+
 
 
 }
