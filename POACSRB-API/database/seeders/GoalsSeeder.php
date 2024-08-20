@@ -17,7 +17,7 @@ class GoalsSeeder extends Seeder
             "2. Participar en reuniones de trabajo enfocadas a las Denominaciones de Origen Protegidas en México/ Internacional.",
             "8. Impartir cursos y talleres de capacitación a Productores, Comercializadores de Agave y Bacanora y sus subproductos, así como al Personal del Consejo, en procesos, formación empresarial, actualización disciplinaria, aplicación de la Norma Oficial Mexicana del Bacanora y Registros, Bitácoras y Certificación de Producto.",
             "9. Desarrollar cursos y talleres de capacitación para el Emprendimiento y Formación Empresarial con Perspectiva de Género.",
-            "10. Llevar a cabo acciones de registro, evaluación y seguimiento del establecimiento de viveros, plantaciones agrícolas y silvestres de Agave angustifolia Haw,  así como fábricas de Bacanora.",
+            "10. Llevar a cabo acciones de registro, evaluación y seguimiento del establecimiento de viveros, plantaciones agrícolas y silvestres de Agave angustifolia Haw, así como fábricas de Bacanora.",
             "11. Participación y organización de eventos promocionales para el Bacanora: Ferias, Exposiciones, Encuentros de Negocios Nacionales e Internacionales y Festivales.",
             "12. Realizar Reuniones de trabajo con Productores, Empresarios, Instituciones, Sector Gubernamental y/o Asociaciones de Productores de Agave y Bacanora.",
             "13. Elaborar y publicar Manuales Operativos, Libros y/o Documentos Informativos sobre la Industria del Bacanora.",
