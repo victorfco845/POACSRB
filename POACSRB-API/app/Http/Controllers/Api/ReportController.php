@@ -664,29 +664,8 @@ public function getTotalPersonasPorMes()
         public function getTotalComisionesPorRegion()
         {
             try {
-                // Subconsulta para contar comisiones por región y mes
-                $subQuery = DB::table('reports')
-                    ->select(
-                        'region',
-                        DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM') as month"),
-                        DB::raw('COUNT(DISTINCT comission_number) as total_comisiones_mes')
-                    )
-                    ->groupBy('region', DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM')"));
-        
-                // Consulta principal uniendo 'cities' con la subconsulta
-                $totalComisionesPorRegion = DB::table('cities')
-                    ->leftJoinSub($subQuery, 'report_subquery', 'cities.region', '=', 'report_subquery.region')
-                    ->select(
-                        'cities.region',
-                        DB::raw('COALESCE(SUM(report_subquery.total_comisiones_mes), 0) as total_comisiones')
-                    )
-                    ->groupBy('cities.region')
-                    ->havingRaw('COALESCE(SUM(report_subquery.total_comisiones_mes), 0) > 0') // Filtrar regiones sin comisiones
-                    ->orderBy('cities.region')
-                    ->get();
-        
-                // Consulta para obtener el total de comisiones por mes para cada región
-                $totalComisionesPorRegionPorMes = DB::table('reports')
+                // Obtener el total de comisiones por región y mes
+                $totalComisionesPorRegion = DB::table('reports')
                     ->select(
                         'region',
                         DB::raw("FORMAT(CONVERT(DATE, date, 105), 'yyyy-MM') as month"),
@@ -703,41 +682,52 @@ public function getTotalPersonasPorMes()
                     '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
                 ];
         
-                // Formatear los resultados combinados
+                // Procesar los resultados
                 $result = [];
         
-                foreach ($totalComisionesPorRegion as $region) {
-                    // Añadir los totales generales
-                    $regionData = [
-                        'region' => $region->region,
-                        'total_comisiones' => $region->total_comisiones,
-                    ];
+                // Crear un array asociativo para almacenar el total y los meses de cada región
+                foreach ($totalComisionesPorRegion as $registro) {
+                    $region = $registro->region;
+                    $month = $registro->month;
+                    $totalComisionesMes = $registro->total_comisiones_mes;
         
-                    // Filtrar los resultados por región y añadir los totales por mes
-                    $meses = $totalComisionesPorRegionPorMes->where('region', $region->region);
-                    foreach ($meses as $mes) {
-                        $fecha = explode('-', $mes->month);
-                        $ano = $fecha[0];
-                        $mesTexto = $mesesEspañol[$fecha[1]];
-        
-                        $regionData['meses'][] = [
-                            'mes' => $mesTexto,
-                            'ano' => $ano,
-                            'total_comisiones_mes' => $mes->total_comisiones_mes,
+                    // Inicializar el array de la región si no existe
+                    if (!isset($result[$region])) {
+                        $result[$region] = [
+                            'region' => $region,
+                            'total_comisiones' => "0", // Inicializar como string
+                            'meses' => []
                         ];
                     }
         
-                    // Agregar la región formateada al resultado
-                    $result[] = $regionData;
+                    // Agregar el total de comisiones para el mes
+                    $result[$region]['total_comisiones'] = (string)((int)$result[$region]['total_comisiones'] + $totalComisionesMes);
+        
+                    // Convertir el mes numérico al nombre en español
+                    $fecha = explode('-', $month);
+                    $año = $fecha[0];
+                    $mesTexto = $mesesEspañol[$fecha[1]];
+        
+                    // Agregar la información del mes
+                    $result[$region]['meses'][] = [
+                        'mes' => $mesTexto,
+                        'año' => $año,
+                        'total_comisiones_mes' => (string)$totalComisionesMes
+                    ];
                 }
+        
+                // Convertir el array asociativo a un array indexado
+                $result = array_values($result);
+        
+                return response()->json(['total_comisiones_por_region' => $result]);
         
             } catch (\Exception $e) {
                 \Log::error('Error fetching total comisiones por region: ' . $e->getMessage());
                 return response()->json(['error' => 'An error occurred while fetching total comisiones por region.'], 500);
             }
-        
-            return response()->json(['total_comisiones_por_region' => $result]);
         }
+        
+
 
         public function getTotalComisionesPorMes()
 {

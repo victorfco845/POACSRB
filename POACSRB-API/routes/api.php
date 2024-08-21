@@ -20,6 +20,8 @@ use App\Http\Middleware\Api\EnsureTokenIsValid;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::middleware('ensureTokenIsValid')->group(function () {
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -42,12 +44,9 @@ Route::post('/userupdate/{id}', [UserController::class, 'update']);
 
 
 Route::get('/total-personas-por-meta', [ReportController::class, 'getTotalPersonasPorMeta']);
-Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
-Route::get('/total-personas-por-region', [ReportController::class, 'getTotalPersonasPorRegion']);
+
 Route::get('/total-personas-por-mes', [ReportController::class, 'getTotalPersonasPorMes']);
 Route::get('/total-comisiones-por-meta', [ReportController::class, 'getTotalComisionesPorMeta']);
-Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
-Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
 Route::get('/total-comisiones-por-mes', [ReportController::class, 'getTotalComisionesPorMes']);
 
 
@@ -64,4 +63,8 @@ Route::get('/evidences/{id}', [EvidenceController::class, 'show']);
 Route::get('/evidencesid/{id}', [EvidenceController::class, 'searchforid']);
 
 
-   
+}); 
+Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
+Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
+Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
+Route::get('/total-personas-por-region', [ReportController::class, 'getTotalPersonasPorRegion']);
