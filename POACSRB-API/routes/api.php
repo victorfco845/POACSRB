@@ -62,9 +62,8 @@ Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 Route::get('/evidences/{id}', [EvidenceController::class, 'show']);
 Route::get('/evidencesid/{id}', [EvidenceController::class, 'searchforid']);
 
-
-}); 
 Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalComisionesPorRegion']);
 Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
 Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
 Route::get('/total-personas-por-region', [ReportController::class, 'getTotalPersonasPorRegion']);
+}); 
