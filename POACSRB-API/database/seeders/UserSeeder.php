@@ -23,14 +23,6 @@ class UserSeeder extends Seeder
                 'job' => 'Administrador',
                 'status' => 'activo',
                 'level' => 1,
-            ],[
-                'user' => 'usuario',
-                'email' => 'usuario@gmail.com',
-                'password' => Hash::make('123'),
-                'user_number' => 2,
-                'job' => 'Cosechador',
-                'status' => 'activo',
-                'level' => 2,
             ]
             ];
             DB::table('users')->insert($users);

@@ -55,7 +55,6 @@ Route::get('/cities', [CityController::class, 'index']);
 Route::get('/cities/{id}', [CityController::class, 'show']);
 
 Route::get('/report', [ReportController::class, 'search']);
-Route::post('evidenceinsert', [EvidenceController::class, 'insert']);
 Route::get('/evidences', [EvidenceController::class, 'index']);
 Route::post('/evidencedelete/{id}', [EvidenceController::class, 'delete']);
 
@@ -67,3 +66,4 @@ Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTota
 Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
 Route::get('/total-personas-por-region', [ReportController::class, 'getTotalPersonasPorRegion']);
 }); 
+Route::post('evidenceinsert', [EvidenceController::class, 'insert']);
