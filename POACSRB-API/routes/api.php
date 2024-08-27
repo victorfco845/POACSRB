@@ -65,5 +65,6 @@ Route::get('/total-comisiones-por-region', [ReportController::class, 'getTotalCo
 Route::get('/total-comisiones-por-municipio', [ReportController::class, 'getTotalComisionesPorMunicipio']);
 Route::get('/total-personas-por-municipio', [ReportController::class, 'getTotalPersonasPorMunicipio']);
 Route::get('/total-personas-por-region', [ReportController::class, 'getTotalPersonasPorRegion']);
-}); 
 Route::post('evidenceinsert', [EvidenceController::class, 'insert']);
+
+}); 

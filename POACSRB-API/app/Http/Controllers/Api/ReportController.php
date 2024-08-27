@@ -770,81 +770,91 @@ public function getTotalPersonasPorMes()
 
     return response()->json(['data' => $result]);
 }
+public function search(Request $request)
+{
+    $query = Report::with(['user', 'goal']); // Cargar relaciones con user y goal
 
-        
+    if ($request->has('title')) {
+        $query->where('title', 'like', '%' . $request->input('title') . '%');
+    }
 
-        public function search(Request $request)
-        {
-            $query = Report::with(['user', 'goal']); // Cargar relaciones con user y goal
-        
-            if ($request->has('title')) {
-                $query->where('title', 'like', '%' . $request->input('title') . '%');
-            }
-        
-            // Buscar por nombre del goal en lugar del goal_id
-            if ($request->has('goal')) {
-                $query->whereHas('goal', function ($q) use ($request) {
-                    $q->where('goal', 'like', '%' . $request->input('goal') . '%');
-                });
-            }
-        
-            if ($request->has('comission_number')) {
-                $query->where('comission_number', 'like', '%' . $request->input('comission_number') . '%');
-            }
-        
-            // Buscar por ciudad (string)
-            if ($request->has('city')) {
-                $query->where('city', 'like', '%' . $request->input('city') . '%');
-            }
-        
-            // Buscar por región (string)
-            if ($request->has('region')) {
-                $query->where('region', 'like', '%' . $request->input('region') . '%');
-            }
-        
-            // Buscar por nombre de usuario en lugar del user_id
-            if ($request->has('user')) {
-                $query->whereHas('user', function ($q) use ($request) {
-                    $q->where('user', 'like', '%' . $request->input('user') . '%');
-                });
-            }
-        
-            // Filtrar por rango de fechas
-            if ($request->has('start_date') && $request->has('end_date')) {
-                $startDate = $request->input('start_date');
-                $endDate = $request->input('end_date');
-                $query->whereBetween('date', [$startDate, $endDate]);
-            }
-        
-            $reports = $query->get();
-        
-            // Transformar los resultados
-            $transformedReports = $reports->map(function ($report) {
-                return [
-                    'id' => $report->id,
-                    'title' => $report->title,
-                    'goal' => $report->goal->goal ?? 'N/A',
-                    'comission_number' => $report->comission_number,
-                    'date' => $report->date,
-                    'user' => $report->user ? $report->user->user : 'Unknown User',
-                    'total_people' => $report->total_people,
-                    'total_women' => $report->total_women,
-                    'total_men' => $report->total_men,
-                    'total_ethnicity' => $report->total_ethnicity,
-                    'total_deshabilities' => $report->total_deshabilities,
-                    'city' => $report->city,
-                    'region' => $report->region,
-                    'inform' => $report->inform,
-                    'comment' => $report->comment,
-                ];
-            });
-        
-            return response()->json($transformedReports);
-        }
-        
+    // Buscar por nombre del goal en lugar del goal_id
+    if ($request->has('goal')) {
+        $query->whereHas('goal', function ($q) use ($request) {
+            $q->where('goal', 'like', '%' . $request->input('goal') . '%');
+        });
+    }
+
+    if ($request->has('comission_number')) {
+        $query->where('comission_number', 'like', '%' . $request->input('comission_number') . '%');
+    }
+
+    // Buscar por ciudad (string)
+    if ($request->has('city')) {
+        $query->where('city', 'like', '%' . $request->input('city') . '%');
+    }
+
+    // Buscar por región (string)
+    if ($request->has('region')) {
+        $query->where('region', 'like', '%' . $request->input('region') . '%');
+    }
+
+    // Buscar por nombre de usuario en lugar del user_id
+    if ($request->has('user')) {
+        $query->whereHas('user', function ($q) use ($request) {
+            $q->where('user', 'like', '%' . $request->input('user') . '%');
+        });
+    }
+
+    // Filtrar por año, mes y día
+    if ($request->has('year')) {
+        $year = $request->input('year');
+        $query->whereRaw("YEAR(CONVERT(DATE, date, 103)) = ?", [$year]);
+    }
+
+    if ($request->has('month')) {
+        $month = $request->input('month');
+        $query->whereRaw("MONTH(CONVERT(DATE, date, 103)) = ?", [$month]);
+    }
+
+    if ($request->has('day')) {
+        $day = $request->input('day');
+        $query->whereRaw("DAY(CONVERT(DATE, date, 103)) = ?", [$day]);
+    }
+
+    // Filtrar por rango de fechas si se proporciona start_date y end_date
+    if ($request->has('start_date') && $request->has('end_date')) {
+        $startDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->input('start_date'))->format('d/m/Y');
+        $endDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->input('end_date'))->format('d/m/Y');
+        $query->whereRaw("CONVERT(DATE, date, 103) BETWEEN CONVERT(DATE, ?, 103) AND CONVERT(DATE, ?, 103)", [$startDate, $endDate]);
+    }
+
+    $reports = $query->get();
+
+    // Transformar los resultados
+    $transformedReports = $reports->map(function ($report) {
+        return [
+            'id' => $report->id,
+            'title' => $report->title,
+            'goal' => $report->goal->goal ?? 'N/A',
+            'comission_number' => $report->comission_number,
+            'date' => $report->date,
+            'user' => $report->user ? $report->user->user : 'Unknown User',
+            'total_people' => $report->total_people,
+            'total_women' => $report->total_women,
+            'total_men' => $report->total_men,
+            'total_ethnicity' => $report->total_ethnicity,
+            'total_deshabilities' => $report->total_deshabilities,
+            'city' => $report->city,
+            'region' => $report->region,
+            'inform' => $report->inform,
+            'comment' => $report->comment,
+        ];
+    });
+
+    return response()->json($transformedReports);
+}
 
 
-        
-        
     }
     
